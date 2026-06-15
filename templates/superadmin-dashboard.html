@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin | Root Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* --- CYBERSECURITY THEME VARIABLES --- */
+        :root { 
+            --bg-pure-black: #050505;
+            --bg-card: #0d0d0d;
+            --accent-yellow: #f1c40f; 
+            --accent-glow: rgba(241, 196, 15, 0.3);
+            --text-main: #ffffff; 
+            --text-dim: #888888; 
+            --danger-red: #e74c3c;
+            --border-color: #222;
+            --success: #00b894;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-pure-black); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+        }
+
+        .sidebar { 
+            width: 260px; background: #000; border-right: 1px solid var(--border-color); 
+            display: flex; flex-direction: column; padding: 2.5rem 1.5rem; position: fixed; height: 100%; z-index: 100; 
+        }
+        
+        .logo { 
+            font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700; color: var(--accent-yellow); 
+            display: flex; align-items: center; gap: 10px; margin-bottom: 3.5rem; text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+        }
+        
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links li { margin-bottom: 0.5rem; }
+        .nav-links a { 
+            display: flex; align-items: center; gap: 15px; padding: 0.8rem 1rem; color: var(--text-dim); 
+            text-decoration: none; border-radius: 4px; transition: 0.2s; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; cursor: pointer;
+        }
+        .nav-links a:hover { color: var(--accent-yellow); background: rgba(241, 196, 15, 0.05); }
+        .nav-links a.active { background: var(--accent-yellow); color: #000; font-weight: 700; box-shadow: 0 0 15px var(--accent-glow); }
+        
+        .user-profile { border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; background: var(--accent-yellow); color: #000; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .user-info h4 { font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+        .user-info p { font-size: 0.65rem; color: var(--accent-yellow); text-transform: uppercase; }
+        .logout-btn { margin-left: auto; color: var(--text-dim); font-size: 1.2rem; transition: 0.3s; }
+        .logout-btn:hover { color: var(--danger-red); transform: scale(1.1); }
+
+        .main-content { margin-left: 260px; padding: 3rem; }
+        
+        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+        .welcome-text h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; color: var(--accent-yellow); text-transform: uppercase; }
+        .welcome-text p { color: var(--text-dim); font-size: 0.9rem; margin-top: 5px; }
+        .live-clock { font-family: 'JetBrains Mono', monospace; color: var(--accent-yellow); text-align: right; }
+        #clock { font-size: 1.5rem; font-weight: 700; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 3rem; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-left: 4px solid var(--accent-yellow); }
+        .stat-card h3 { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; color: var(--text-main); }
+        .stat-card p { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+        .view-section { display: none; }
+        .view-section.active-view { display: block; }
+        
+        .table-container { background: var(--bg-card); border: 1px solid var(--border-color); overflow-x: auto; margin-bottom: 30px;}
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background: #111; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent-yellow); text-transform: uppercase; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
+        tr:hover { background: #111; }
+
+        .hash-text { color: var(--accent-yellow); opacity: 0.8; font-size: 0.8rem; }
+        .status-active { color: var(--success); }
+        .status-inactive { color: var(--danger-red); }
+
+        .btn-action { background: var(--accent-yellow); color: #000; border: none; padding: 10px 20px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; cursor: pointer; transition: 0.2s;}
+        .btn-action:hover { background: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .btn-danger { background: transparent; border: 1px solid var(--danger-red); color: var(--danger-red); }
+        .btn-danger:hover { background: var(--danger-red); color: #fff; }
+        .btn-success { background: transparent; border: 1px solid var(--success); color: var(--success); }
+        .btn-success:hover { background: var(--success); color: #000; }
+
+        .admin-toolbar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px;}
+        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 25px; border-bottom: 1px solid var(--border-color); background: var(--bg-card);}
+        .settings-row div strong { color: var(--accent-yellow); font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;}
+        .settings-row div span { font-size: 0.8rem; color: var(--text-dim); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; }
+        .modal-card { background: #111; border: 1px solid var(--accent-yellow); width: 90%; max-width: 400px; padding: 2.5rem; position: relative; }
+        .modal-card h3 { font-family: 'JetBrains Mono', monospace; color: var(--accent-yellow); margin-bottom: 20px;}
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; font-family: 'JetBrains Mono', monospace;}
+        .input-group input { width: 100%; padding: 10px; background: #000; border: 1px solid var(--border-color); color: #fff; outline: none; font-family: 'JetBrains Mono', monospace;}
+
+        /* Custom Inputs for Hacker Theme */
+        .hacker-input { background: #000; border: 1px solid var(--border-color); color: var(--accent-yellow); font-family: 'JetBrains Mono', monospace; padding: 10px 15px; outline: none; border-radius: 4px;}
+        .hacker-select { background: #000; color: var(--accent-yellow); border: 1px solid var(--border-color); padding: 10px 15px; font-family: 'JetBrains Mono', monospace; outline: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo"><i class='bx bx-terminal'></i> ROOT<span>_</span>SYS</div>
+        <ul class="nav-links">
+            <li><a onclick="switchView('dashboard')" class="active" id="nav-dashboard"><i class='bx bx-grid-alt'></i> TERMINAL_OVERVIEW</a></li>
+            <li><a onclick="switchView('candidates')" id="nav-candidates"><i class='bx bx-user-circle'></i> CANDIDATE_DB</a></li>
+            <li><a onclick="switchView('results')" id="nav-results"><i class='bx bx-bar-chart-alt-2'></i> ELECTION_RESULTS</a></li>
+            <li><a onclick="switchView('admins')" id="nav-admins"><i class='bx bx-user-pin'></i> ADMIN_DATABASE</a></li>
+            <li><a onclick="switchView('activity')" id="nav-activity"><i class='bx bx-pulse'></i> ACTIVITY_LOGS</a></li>
+            <li><a onclick="switchView('ledger')" id="nav-ledger"><i class='bx bx-code-block'></i> BLOCKCHAIN_LOGS</a></li>
+            <li><a onclick="switchView('emergency')" id="nav-emergency" style="color:var(--danger-red);"><i class='bx bx-error'></i> EMERGENCY_CTRL</a></li>
+        </ul>
+        <div class="user-profile">
+            <div class="avatar">R</div>
+            <div class="user-info"><h4>SUPER_USER</h4><p>Root Access</p></div>
+            <a href="/logout" class="logout-btn"><i class='bx bx-power-off'></i></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <div class="welcome-text">
+                <h1>System Security Console</h1>
+                <p>Node Status: <span style="color: var(--success);">Online</span> | Encryption: <span style="color: var(--accent-yellow);">AES-256-GCM</span></p>
+            </div>
+            <div class="live-clock">
+                <div id="clock">00:00:00</div>
+                <div id="date" style="font-size: 0.7rem; color: var(--text-dim);">FETCHING_DATE...</div>
+            </div>
+        </header>
+
+        <div id="view-dashboard" class="view-section active-view">
+            <div class="stats-grid">
+                <div class="stat-card"><p>Registered Voters</p><h3 id="super-total-reg">0</h3></div>
+                <div class="stat-card"><p>Verified Transactions</p><h3 id="super-total-voted">0</h3></div>
+                <div class="stat-card"><p>Network Admins</p><h3>{{ admins|length }}</h3></div>
+                <div class="stat-card"><p>System Uptime</p><h3>99.9%</h3></div>
+            </div>
+
+            <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 1rem; margin-top: 2rem; color: var(--text-dim);">&gt; FACULTY_TURNOUT_METRICS</h2>
+            <div class="table-container" id="super-faculty-chart" style="padding: 2rem; display: flex; align-items: flex-end; justify-content: space-around; height: 250px;">
+                <p style="color:var(--text-dim); font-family:monospace; margin:auto;">Fetching blockchain node data...</p>
+            </div>
+            
+            <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 1rem; color: var(--text-dim);">&gt; RECENT_ACTIVITY_STREAM</h2>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Timestamp</th><th>Process Description</th></tr></thead>
+                    <tbody id="dash-activity-log"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-candidates" class="view-section">
+            <div class="admin-toolbar">
+                <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; margin-bottom: 10px; width: 100%;">CANDIDATE_DATABASE</h2>
+                <form method="GET" action="/superadmin-dashboard" style="display:flex; gap:15px; width:100%; align-items: center; flex-wrap: wrap;">
+                    <input type="hidden" name="active_tab" value="candidates">
+                    <div style="flex-grow: 1; display: flex; align-items: center; background: #000; border: 1px solid var(--border-color); border-radius: 4px; padding: 0 15px;">
+                        <i class='bx bx-search' style="color: var(--text-dim); margin-right: 10px; font-size: 1.2rem;"></i>
+                        <input type="text" name="search" placeholder="Search Candidate..." value="{{ search_query or '' }}" class="hacker-input" style="border:none; padding-left:0; flex-grow:1;">
+                    </div>
+                    <select name="year" class="hacker-select">
+                        <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+                        <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+                        <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
+                    </select>
+                    <select name="faculty" class="hacker-select" style="max-width: 220px; text-overflow: ellipsis;">
+                        <option value="">ALL FACULTY</option>
+                        <option value="Faculty of Computer Science and Information Technology" {% if selected_faculty == 'Faculty of Computer Science and Information Technology' %}selected{% endif %}>FSKTM</option>
+                        <option value="Faculty of Electrical and Electronic Engineering" {% if selected_faculty == 'Faculty of Electrical and Electronic Engineering' %}selected{% endif %}>FKEE</option>
+                        <option value="Faculty of Technical and Vocational Education" {% if selected_faculty == 'Faculty of Technical and Vocational Education' %}selected{% endif %}>FPTV</option>
+                        <option value="Faculty of Technology Management and Business" {% if selected_faculty == 'Faculty of Technology Management and Business' %}selected{% endif %}>FPTP</option>
+                        <option value="Faculty of Applied Sciences and Technology" {% if selected_faculty == 'Faculty of Applied Sciences and Technology' %}selected{% endif %}>FAST</option>
+                        <option value="Faculty of Mechanical Engineering" {% if selected_faculty == 'Faculty of Mechanical Engineering' %}selected{% endif %}>FKMP</option>
+                        <option value="Faculty of Civil Engineering" {% if selected_faculty == 'Faculty of Civil Engineering' %}selected{% endif %}>FKAAB</option>
+                    </select>
+                    <button type="submit" class="btn-action">QUERY_DB</button>
+                </form>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>IMAGE</th><th>NAME</th><th>MATRIC</th><th>FACULTY</th><th>MANIFESTO</th><th>STATUS</th></tr></thead>
+                    <tbody>
+                        {% for c in candidates %}
+                        <tr>
+                            <td><img src="{{ c.avatar_path }}" style="width:40px; height:50px; object-fit:cover; border-radius:4px; border: 1px solid var(--accent-yellow);" onerror="this.src='https://ui-avatars.com/api/?name={{ c.name }}&background=f1c40f&color=000'"></td>
+                            <td style="color: var(--text-main); font-family: 'Poppins', sans-serif;">{{ c.name }}</td>
+                            <td style="color: var(--accent-yellow);">{{ c.matric_no }}</td>
+                            <td>{{ c.faculty }}</td>
+                            <td style="color: var(--text-dim); font-size: 0.75rem; font-family: 'Poppins', sans-serif;">"{{ c.manifesto }}"</td>
+                            <td class="{% if c.status == 'Active' %}status-active{% else %}status-inactive{% endif %}">[{{ c.status|upper }}]</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" style="text-align: center; color: var(--danger-red);">NO_RECORDS_FOUND</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-results" class="view-section">
+            <div class="admin-toolbar">
+                <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; margin-bottom: 10px; width: 100%;">ELECTION_RESULTS_VIEWER</h2>
+                <form method="GET" action="/superadmin-dashboard" style="display:flex; gap:15px; width:100%; align-items: center; flex-wrap: wrap;">
+                    <input type="hidden" name="active_tab" value="results">
+                    <select name="year" class="hacker-select">
+                        <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+                        <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+                        <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
+                    </select>
+                    <select name="faculty" class="hacker-select" style="max-width: 250px; text-overflow: ellipsis;">
+                        <option value="">ALL FACULTY (PUBLIC ELECTION)</option>
+                        <option value="Faculty of Computer Science and Information Technology" {% if selected_faculty == 'Faculty of Computer Science and Information Technology' %}selected{% endif %}>FSKTM</option>
+                        <option value="Faculty of Electrical and Electronic Engineering" {% if selected_faculty == 'Faculty of Electrical and Electronic Engineering' %}selected{% endif %}>FKEE</option>
+                        <option value="Faculty of Technical and Vocational Education" {% if selected_faculty == 'Faculty of Technical and Vocational Education' %}selected{% endif %}>FPTV</option>
+                        <option value="Faculty of Technology Management and Business" {% if selected_faculty == 'Faculty of Technology Management and Business' %}selected{% endif %}>FPTP</option>
+                        <option value="Faculty of Applied Sciences and Technology" {% if selected_faculty == 'Faculty of Applied Sciences and Technology' %}selected{% endif %}>FAST</option>
+                        <option value="Faculty of Mechanical Engineering" {% if selected_faculty == 'Faculty of Mechanical Engineering' %}selected{% endif %}>FKMP</option>
+                        <option value="Faculty of Civil Engineering" {% if selected_faculty == 'Faculty of Civil Engineering' %}selected{% endif %}>FKAAB</option>
+                    </select>
+                    <button type="submit" class="btn-action">APPLY_FILTERS</button>
+                </form>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RANK</th>
+                            <th>IMAGE</th>
+                            <th>CANDIDATE NAME</th>
+                            <th>FACULTY</th>
+                            <th>TOTAL VOTES</th>
+                            <th>PERCENTAGE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in results_data %}
+                        <tr>
+                            <td style="color: var(--accent-yellow); font-weight: bold; font-size: 1.1rem; font-family: 'JetBrains Mono', monospace;">#{{ loop.index }}</td>
+                            <td><img src="{{ r.avatar_path }}" style="width:45px; height:55px; object-fit:cover; border-radius:4px; border: 1px solid var(--accent-yellow);" onerror="this.src='https://ui-avatars.com/api/?name={{ r.name }}&background=f1c40f&color=000'"></td>
+                            <td style="color: var(--text-main); font-family: 'Poppins', sans-serif; font-weight: 600;">{{ r.name }}</td>
+                            <td style="color: var(--text-dim);">{{ r.faculty }}</td>
+                            <td style="color: var(--success); font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: bold;">{{ r.vote_count }}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: var(--accent-yellow); font-family: 'JetBrains Mono', monospace; min-width: 45px;">{{ r.vote_pct }}%</span>
+                                    <div style="width: 120px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                    <div style="width: 0%; height: 100%; background: var(--accent-yellow);"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" style="text-align: center; color: var(--danger-red);">NO_RESULTS_FOUND_FOR_THESE_PARAMETERS</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-admins" class="view-section">
+            <div class="admin-toolbar">
+                <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;">ADMINISTRATOR_DATABASE</h2>
+                <button class="btn-action" onclick="document.getElementById('add-admin-modal').style.display='flex'">+ CREATE_ADMIN_NODE</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Admin_ID</th><th>Identity / Email</th><th>Account Status</th><th>Overrides</th></tr></thead>
+                    <tbody>
+                        {% for a in admins %}
+                        <tr>
+                            <td>ADM-00{{ a.admin_id }}</td>
+                            <td style="font-family: 'Poppins', sans-serif;">{{ a.full_name }}<br><span style="font-size:0.7rem; color:var(--text-dim); font-family: 'JetBrains Mono', monospace;">{{ a.email }}</span></td>
+                            <td class="{% if a.status == 'Active' %}status-active{% else %}status-inactive{% endif %}">[{{ a.status|upper }}]</td>
+                            <td>
+                                <button type="button" class="btn-action btn-danger" style="padding: 5px 10px;" onclick="toggleAdmin('{{ a.admin_id }}')">TOGGLE_ACCESS</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-activity" class="view-section">
+            <div class="admin-toolbar"><h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;">GLOBAL_ACTIVITY_LOGS</h2></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Timestamp</th><th>Process Description</th></tr></thead>
+                    <tbody id="full-activity-log"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-ledger" class="view-section">
+            <div class="admin-toolbar"><h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem;">IMMUTABLE_LEDGER_VIEW</h2></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Election_ID</th><th>Timestamp</th><th>Transaction_Hash</th><th>Voter_Matric</th></tr></thead>
+                    <tbody>
+                        {% for l in ledgers %}
+                        <tr>
+                            <td style="color: var(--text-main);">{{ l.election_id }}</td>
+                            <td style="color: var(--text-dim);">{{ l.participated_at }}</td>
+                            <td><span class="hash-text">{{ l.tx_hash }}</span></td>
+                            <td style="color: var(--success);">{{ l.matric_no }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="text-align:center; color: var(--danger-red);">No blockchain transactions recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-emergency" class="view-section">
+            <h2 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; margin-bottom: 1.5rem; color: var(--danger-red);">CRITICAL_EMERGENCY_CONTROLS</h2>
+            
+            <h3 style="font-family: monospace; color: var(--accent-yellow); margin-bottom: 10px;">[ PUBLIC ELECTION SESSION ]</h3>
+            <div class="table-container">
+                <div class="settings-row">
+                    <div><strong>FORCE_STOP (PAUSE)</strong><span>Instantly freezes public voting. Students cannot cast votes.</span></div>
+                    <button class="btn-action btn-danger" onclick="executeEmergency('pause', 'public')">EXECUTE</button>
+                </div>
+                <div class="settings-row">
+                    <div><strong>REOPEN_SESSION (LIVE)</strong><span>Unfreezes a paused public election.</span></div>
+                    <button class="btn-action btn-success" onclick="executeEmergency('reopen', 'public')">EXECUTE</button>
+                </div>
+                <div class="settings-row">
+                    <div><strong>ARCHIVE_SESSION (END)</strong><span>Force-closes the public election gracefully.</span></div>
+                    <button class="btn-action" onclick="executeEmergency('end', 'public')">EXECUTE</button>
+                </div>
+                <div class="settings-row">
+                    <div><strong>WIPE_SESSION (DELETE)</strong><span style="color:var(--danger-red);">Danger: Permanently clears the public session from the database.</span></div>
+                    <button class="btn-action btn-danger" onclick="executeEmergency('delete', 'public')">EXECUTE</button>
+                </div>
+            </div>
+
+            <h3 style="font-family: monospace; color: var(--accent-yellow); margin-bottom: 10px; margin-top: 30px;">[ FACULTY ELECTION SESSION ]</h3>
+            <div class="table-container">
+                <div class="settings-row">
+                    <div><strong>FORCE_STOP (PAUSE)</strong><span>Instantly freezes faculty voting.</span></div>
+                    <button class="btn-action btn-danger" onclick="executeEmergency('pause', 'faculty')">EXECUTE</button>
+                </div>
+                <div class="settings-row">
+                    <div><strong>REOPEN_SESSION (LIVE)</strong><span>Unfreezes a paused faculty election.</span></div>
+                    <button class="btn-action btn-success" onclick="executeEmergency('reopen', 'faculty')">EXECUTE</button>
+                </div>
+                <div class="settings-row">
+                    <div><strong>ARCHIVE_SESSION (END)</strong><span>Force-closes the faculty election gracefully.</span></div>
+                    <button class="btn-action" onclick="executeEmergency('end', 'faculty')">EXECUTE</button>
+                </div>
+                <div class="settings-row">
+                    <div><strong>WIPE_SESSION (DELETE)</strong><span style="color:var(--danger-red);">Danger: Permanently clears the faculty session from the database.</span></div>
+                    <button class="btn-action btn-danger" onclick="executeEmergency('delete', 'faculty')">EXECUTE</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="add-admin-modal" class="modal-overlay" onclick="if(event.target==this) this.style.display='none'">
+        <div class="modal-card">
+            <h3>&gt; CREATE_ADMIN_NODE</h3>
+            <div class="input-group"><label>Full Name</label><input type="text" id="new-admin-name" class="hacker-input"></div>
+            <div class="input-group"><label>Email Address</label><input type="email" id="new-admin-email" class="hacker-input"></div>
+            <div class="input-group"><label>Assigned Password</label><input type="password" id="new-admin-pwd" class="hacker-input"></div>
+            <button class="btn-action" style="width:100%; margin-top:10px;" onclick="submitNewAdmin()">DEPLOY_NODE</button>
+        </div>
+    </div>
+
+    <script>
+        localStorage.setItem('theme', 'dark');
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+            document.getElementById('date').innerText = now.toDateString().toUpperCase();
+        }, 1000);
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+            document.getElementById('view-' + viewName).classList.add('active-view');
+            document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+            document.getElementById('nav-' + viewName).classList.add('active');
+            localStorage.setItem("superadminActiveTab", viewName);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let tabToOpen = urlParams.get('active_tab');
+            if (!tabToOpen) { tabToOpen = localStorage.getItem("superadminActiveTab") || "dashboard"; }
+            switchView(tabToOpen);
+        });
+
+        // Fetch logs
+        function loadLogs() {
+            fetch('/api/get-activity-logs').then(r=>r.json()).then(logs => {
+                let html = "";
+                logs.forEach(l => {
+                    html += `<tr><td style="color:var(--text-dim);">${l.created_at}</td><td style="font-family: 'Poppins', sans-serif;"><span style="color:var(--accent-yellow); font-family: 'JetBrains Mono', monospace;">&gt;</span> ${l.description}</td></tr>`;
+                });
+                document.getElementById('dash-activity-log').innerHTML = html;
+                document.getElementById('full-activity-log').innerHTML = html;
+            });
+        }
+        loadLogs(); setInterval(loadLogs, 5000);
+
+        // Admin Management
+        function submitNewAdmin() {
+            const name = document.getElementById('new-admin-name').value;
+            const email = document.getElementById('new-admin-email').value;
+            const pwd = document.getElementById('new-admin-pwd').value;
+            if(!name || !email || !pwd) return alert("Missing parameters.");
+            
+            fetch('/api/superadmin/add-admin', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({name: name, email: email, password: pwd})
+            }).then(r=>r.json()).then(res => {
+                if(res.success) location.reload();
+                else alert(res.message);
+            });
+        }
+
+        function toggleAdmin(id) {
+            fetch('/api/superadmin/toggle-admin', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({admin_id: id})
+            }).then(r=>r.json()).then(res => {
+                if(res.success) location.reload();
+            });
+        }
+
+        // Emergency Control
+        function executeEmergency(action, target) {
+            if(!confirm(`WARNING: Executing ${action.toUpperCase()} on ${target.toUpperCase()} election. Proceed?`)) return;
+            fetch('/api/superadmin/emergency', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({action: action, target: target})
+            }).then(r => r.json()).then(res => {
+                if(res.success) {
+                    alert("SYSTEM OVERRIDE EXECUTED SUCCESSFULLY.");
+                    fetchDatabaseSessions(); // Instant UI sync
+                    loadLogs();              // Instant Log sync
+                } else {
+                    // This will now display the exact Python error or session timeout
+                    alert("Execution failed: " + (res.message || "Unknown Database Error"));
+                }
+            }).catch(e => {
+                alert("Server Connection Error: Could not reach the Flask API.");
+            });
+        }
+        function determineStatus(startTs, endTs, now, dbStatus) {
+            if (dbStatus === 'Paused') return "<span class='badge badge-inactive' style='background:rgba(231,76,60,0.15); color:#e74c3c;'>PAUSED</span>";
+            if (dbStatus === 'Ended' || now > endTs) return "<span class='badge badge-inactive'>Ended</span>";
+            if (now < startTs) return "<span class='badge badge-pending'>Pending</span>";
+            return "<span class='badge badge-active'>Live</span>";
+        }
+
+        function fetchDatabaseSessions() {
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const tbody = document.getElementById('session-status-table');
+                if(!tbody) return; 
+                tbody.innerHTML = "";
+                const now = new Date().getTime();
+
+                let hasData = false;
+                if(settings.public_election_id) {
+                    hasData = true;
+                    // FIX: Uses public_end_time
+                    const status = determineStatus(new Date(settings.public_start_time).getTime(), new Date(settings.public_end_time).getTime(), now, settings.public_election_status);
+                    tbody.innerHTML += `<tr>
+                        <td style="color:var(--accent-magenta); font-weight:bold; font-family:monospace;">${settings.public_election_id}</td>
+                        <td>Public Election</td><td>All Students</td>
+                        <td>${new Date(settings.public_start_time).toLocaleString()}</td><td>${new Date(settings.public_end_time).toLocaleString()}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                }
+
+                if(settings.faculty_election_id) {
+                    hasData = true;
+                    // FIX: Uses faculty_end_time
+                    const status = determineStatus(new Date(settings.faculty_start_time).getTime(), new Date(settings.faculty_end_time).getTime(), now, settings.faculty_election_status);
+                    tbody.innerHTML += `<tr>
+                        <td style="color:var(--accent-magenta); font-weight:bold; font-family:monospace;">${settings.faculty_election_id}</td>
+                        <td>Faculty Election</td><td>${settings.target_faculty}</td>
+                        <td>${new Date(settings.faculty_start_time).toLocaleString()}</td><td>${new Date(settings.faculty_end_time).toLocaleString()}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                }
+                
+                if(!hasData) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-gray);">No active database sessions.</td></tr>`;
+            });
+        }
+
+        // --- GLOBAL CLOCK & REAL-TIME SYNC ---
+        setInterval(() => {
+            const nowStr = new Date();
+            document.getElementById('clock').innerText = nowStr.toLocaleTimeString();
+            
+            const dateEl = document.getElementById('date');
+            if (dateEl) {
+                dateEl.innerText = nowStr.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+            }
+
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const now = new Date().getTime();
+                let distance = 0;
+                let isPublicConfigured = false;
+
+                if (settings.public_election_status === 'Live' && settings.public_start_time) {
+                    isPublicConfigured = true;
+                    const startTs = new Date(settings.public_start_time).getTime();
+                    // FIX: Targets public_end_time
+                    const endTs = new Date(settings.public_end_time).getTime();
+
+                    if (now < startTs) {
+                        document.getElementById("admin-timer-label").innerText = "Public Election Starts In";
+                        distance = startTs - now;
+                    } else if (now >= startTs && now <= endTs) {
+                        document.getElementById("admin-timer-label").innerText = "Public Election Ends In (Live)";
+                        distance = endTs - now;
+                    } else {
+                        document.getElementById("admin-timer-label").innerText = "Public Election Ended";
+                        distance = 0;
+                    }
+                } else if (settings.public_election_status === 'Paused') {
+                    document.getElementById("admin-timer-label").innerText = "Election Paused by Superadmin";
+                    distance = 0;
+                } else {
+                    document.getElementById("admin-timer-label").innerText = "No Public Election Scheduled";
+                }
+
+                if (distance > 0 && isPublicConfigured) {
+                    document.getElementById("admin-cd-days").innerText = Math.floor(distance / 86400000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-hours").innerText = Math.floor((distance % 86400000) / 3600000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-minutes").innerText = Math.floor((distance % 3600000) / 60000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-seconds").innerText = Math.floor((distance % 60000) / 1000).toString().padStart(2, '0');
+                } else {
+                    document.getElementById("admin-cd-days").innerText = "00"; document.getElementById("admin-cd-hours").innerText = "00";
+                    document.getElementById("admin-cd-minutes").innerText = "00"; document.getElementById("admin-cd-seconds").innerText = "00";
+                }
+            });
+            fetchDatabaseSessions();
+        }, 1000);
+        // Dynamic Chart Sync for Superadmin
+        function fetchSuperAdminStats() {
+            fetch('/api/dashboard-stats').then(r=>r.json()).then(data => {
+                document.getElementById('super-total-reg').innerText = data.total_registered.toLocaleString();
+                document.getElementById('super-total-voted').innerText = data.total_voted.toLocaleString();
+                
+                const chart = document.getElementById('super-faculty-chart');
+                if (chart) {
+                    chart.innerHTML = "";
+                    
+                    const acronyms = {
+                        "Faculty of Computer Science and Information Technology": "FSKTM",
+                        "Faculty of Electrical and Electronic Engineering": "FKEE",
+                        "Faculty of Technical and Vocational Education": "FPTV",
+                        "Faculty of Technology Management and Business": "FPTP",
+                        "Faculty of Applied Sciences and Technology": "FAST",
+                        "Faculty of Mechanical Engineering": "FKMP",
+                        "Faculty of Civil Engineering": "FKAAB"
+                    };
+                    
+                    if (!data.faculty_stats || data.faculty_stats.length === 0) {
+                        chart.innerHTML = "<p style='color:var(--text-dim); margin:auto; font-family:monospace;'>No turnout data available.</p>";
+                        return;
+                    }
+
+                    data.faculty_stats.forEach((f, idx) => {
+                        const shortName = acronyms[f.faculty] || "FAC";
+                        // Trophy icon logic
+                        let highlightIcon = idx === 0 && f.turnout_pct > 0 
+                            ? `<div style="margin-bottom: 5px; color: var(--accent-yellow); font-size: 1.2rem;"><i class='bx bxs-trophy'></i></div>` 
+                            : `<div style="height: 1.2rem; margin-bottom: 5px;"></div>`; // spacer to keep bars aligned
+                        
+                        // Color styling logic
+                        let colorStyle = `background: rgba(241, 196, 15, ${Math.max(0.2, 0.8 - (idx * 0.1))});`;
+                        let textStyle = `color: var(--text-dim);`;
+                        
+                        if (idx === 0 && f.turnout_pct > 0) {
+                            // Highest
+                            colorStyle = `background: var(--accent-yellow);`;
+                            textStyle = `color: var(--accent-yellow); font-weight: bold;`;
+                        } else if (idx === data.faculty_stats.length - 1 && data.faculty_stats.length > 1) {
+                            // Lowest
+                            colorStyle = `background: var(--danger-red);`;
+                            textStyle = `color: var(--danger-red); font-weight: bold;`;
+                        }
+                        
+                        chart.innerHTML += `
+                            <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;">
+                                ${highlightIcon}
+                                <div style="height:150px; width:40px; background:rgba(255,255,255,0.05); display:flex; align-items:flex-end; border-radius: 4px 4px 0 0; overflow: hidden;">
+                                    <div style="height:${f.turnout_pct}%; width:100%; ${colorStyle} transition: height 0.5s ease;"></div>
+                                </div>
+                                <span style="font-size:0.75rem; margin-top:10px; font-family:'JetBrains Mono', monospace; ${textStyle}">${shortName}</span>
+                                <span style="font-size:0.65rem; margin-top:2px; font-family:'JetBrains Mono', monospace; ${textStyle}">${f.turnout_pct}%</span>
+                            </div>`;
+                    });
+                }
+            });
+        }
+        
+        fetchSuperAdminStats();
+        setInterval(fetchSuperAdminStats, 5000);
+        
+    </script>
+</body>
+</html>

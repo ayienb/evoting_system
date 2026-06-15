@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize Access | UTHM E-Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --accent-magenta: #d946ef;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; text-align: center; }
+        .waiting-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 3rem; width: 90%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .number-display {
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: 5px;
+            color: var(--accent-magenta);
+            text-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
+            margin: 20px 0;
+            font-family: 'JetBrains Mono', monospace;
+            
+            /* --- SOLUTION 1: PREVENT TEXT SELECTION & TAP HIGHLIGHT --- */
+            -webkit-user-select: none;   /* Safari */
+            -moz-user-select: none;      /* Firefox */
+            -ms-user-select: none;       /* IE10+ */
+            user-select: none;           /* Standard */
+            -webkit-tap-highlight-color: transparent; /* Removes the mobile tap overlay box */
+        }
+        .spinner { font-size: 2rem; color: #b3b3b3; animation: spin 2s linear infinite; margin-top: 1.5rem; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="waiting-card">
+        <div style="font-size: 3rem; color: var(--accent-magenta); margin-bottom: 10px;"><i class='bx bx-shield-quarter'></i></div>
+        <h2>Device Handshake Authorization</h2>
+        
+        <p style="margin-top: 10px; color: #b3b3b3; font-size: 0.95rem;">Please check your email and tap the matching number below to securely continue.</p>
+        
+        <div class="number-display">
+            {{ target_number }}
+        </div>
+        
+        <p style="font-size: 0.85rem; color: #b3b3b3;">Awaiting cross-device verification status...</p>
+        <div class="spinner"><i class='bx bx-loader-circle'></i></div>
+    </div>
+
+    <script>
+        // Check verification pipeline every 1500ms (1.5 seconds)
+        const checkMfaStatusLoop = setInterval(() => {
+            fetch('/check-login-status')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        clearInterval(checkMfaStatusLoop);
+                        // Forward automatically into the correct dashboard for that specific role!
+                        window.location.href = data.redirect_url;
+                    }
+                })
+                .catch(err => console.log("Scanning pipeline node..."));
+        }, 1500);
+    </script>
+</body>
+</html>

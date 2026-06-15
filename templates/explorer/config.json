@@ -1,0 +1,15 @@
+{
+  "network-configs": {
+    "network-1": {
+      "name": "UTHM_EVoting_Network",
+      "profile": "/opt/explorer/app/platform/fabric/connection-profile/connection-org1.json"
+    }
+  },
+  "config": {
+    "exec": {
+      "app": "node",
+      "args": "main.js"
+    }
+  },
+  "license": "Apache-2.0"
+}

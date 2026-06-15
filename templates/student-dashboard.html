@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | E-Voting</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root { 
+            --bg-dark: #0f0c29; 
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); 
+            --sidebar-bg: rgba(15, 12, 41, 0.85); 
+            --glass-bg: rgba(255, 255, 255, 0.03); 
+            --glass-border: rgba(255, 255, 255, 0.1); 
+            --glass-highlight: rgba(255, 255, 255, 0.2);
+            --accent-magenta: #d946ef; 
+            --primary-purple: #9d50bb; 
+            --text-white: #ffffff; 
+            --text-gray: #b3b3b3; 
+            --success: #00b894; 
+            --warning: #fdcb6e; 
+            --danger: #ff7675; 
+            --modal-bg: #1a1a2e;
+        }
+
+        body.light-mode {
+            --bg-dark: #f0f2f5; --bg-gradient: linear-gradient(135deg, #f0f2f5 0%, #e0eafc 100%);
+            --sidebar-bg: rgba(255, 255, 255, 0.9); --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.1); --glass-highlight: rgba(255, 255, 255, 0.5);
+            --text-white: #111111; --text-gray: #555555; --modal-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: var(--text-white); 
+            min-height: 100vh; overflow-x: hidden; transition: background 0.4s ease, color 0.4s ease; 
+        }
+
+        body.light-mode .welcome-text h1, body.light-mode .section-header h2 { background: linear-gradient(#111, #555); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        body.light-mode .candidate-manifesto { background: rgba(0, 0, 0, 0.05); color: #333; }
+        body.light-mode .live-clock-container, body.light-mode .pwd-req-list, body.light-mode .input-group input { background: rgba(255,255,255,0.7); color: #111;}
+
+        .ambient-blob-1 { position: fixed; top: -150px; right: -150px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(217,70,239,0.15) 0%, rgba(0,0,0,0) 70%); filter: blur(50px); z-index: 0; pointer-events: none; }
+        .ambient-blob-2 { position: fixed; bottom: -200px; left: 100px; width: 700px; height: 700px; background: radial-gradient(circle, rgba(157,80,187,0.15) 0%, rgba(0,0,0,0) 70%); filter: blur(60px); z-index: 0; pointer-events: none; }
+
+        .dashboard-container { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+        
+        .sidebar { 
+            width: 260px; background: var(--sidebar-bg); backdrop-filter: blur(20px); 
+            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; 
+            padding: 2.5rem 2rem; position: fixed; height: 100%; z-index: 100; box-shadow: 5px 0 25px rgba(0,0,0,0.1); transition: 0.4s ease;
+        }
+        
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--text-white); display: flex; align-items: center; gap: 10px; margin-bottom: 3.5rem; letter-spacing: 0.5px;}
+        .logo span { color: var(--accent-magenta); font-size: 1.8rem; text-shadow: 0 0 10px rgba(217, 70, 239, 0.5);}
+        
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links li { margin-bottom: 0.8rem; }
+        .nav-links a { display: flex; align-items: center; gap: 15px; padding: 1.2rem 1rem; color: var(--text-gray); text-decoration: none; border-radius: 12px; transition: all 0.3s ease; cursor: pointer; font-weight: 500;}
+        .nav-links a i { font-size: 1.3rem; transition: transform 0.3s; }
+        .nav-links a:hover { color: var(--text-white); background: rgba(128,128,128,0.1); }
+        .nav-links a:hover i { transform: scale(1.1); color: var(--accent-magenta); }
+        .nav-links a.active { background: linear-gradient(90deg, rgba(217, 70, 239, 0.15), transparent); color: var(--text-white); border-left: 4px solid var(--accent-magenta); }
+        .nav-links a.active i { color: var(--accent-magenta); }
+        
+        .user-profile { border-top: 1px solid var(--glass-border); padding-top: 1.5rem; display: flex; align-items: center; gap: 12px; width: 100%; overflow: hidden; }
+        .avatar { width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary-purple), var(--accent-magenta)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: white; flex-shrink: 0; text-transform: uppercase; object-fit: cover;}
+        .user-info { flex-grow: 1; min-width: 0; }
+        .user-info h4 { font-size: 0.9rem; font-weight: 600; color: var(--text-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-info p { font-size: 0.75rem; color: var(--text-gray); }
+
+        .logout-btn { color: var(--text-gray); font-size: 1.4rem; transition: 0.3s; flex-shrink: 0; margin-left: 5px; }
+        .logout-btn:hover { color: var(--danger); transform: translateX(3px); }
+
+        .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 4rem; position: relative; }
+        .view-section { display: none; animation: fadeInUp 0.5s ease forwards; opacity: 0; transform: translateY(20px);}
+        .view-section.active-view { display: block; }
+        
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .welcome-text h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(90deg, #fff, #e0e0e0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;}
+        .welcome-text p { color: var(--text-gray); margin-top: 5px;}
+        
+        .live-clock-container { display: flex; flex-direction: column; align-items: flex-end; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: 0.4s ease;}
+        .clock-time { font-size: 1.4rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent-magenta); letter-spacing: 1px;}
+        .clock-date { font-size: 0.8rem; color: var(--text-gray); }
+
+        /* --- DASHBOARD ELEMENTS --- */
+        .top-dash-wrapper { display: grid; grid-template-columns: 2.5fr 1fr; gap: 25px; margin-bottom: 3.5rem;}
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-card { 
+            background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight); border-left: 1px solid var(--glass-highlight);
+            padding: 1.8rem; border-radius: 20px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.4s ease; position: relative; overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-8px); border-color: rgba(217, 70, 239, 0.4); box-shadow: 0 15px 35px rgba(217, 70, 239, 0.15); }
+        .icon-box { width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; z-index: 1;}
+        .purple { background: rgba(157, 80, 187, 0.2); color: #e0aaff; border: 1px solid rgba(157, 80, 187, 0.3);}
+        .orange { background: rgba(253, 203, 110, 0.2); color: #fdcb6e; border: 1px solid rgba(253, 203, 110, 0.3);}
+        .green { background: rgba(0, 184, 148, 0.2); color: #00b894; border: 1px solid rgba(0, 184, 148, 0.3);}
+        .stat-info { z-index: 1; }
+        .stat-info h3 { font-size: 1.8rem; font-weight: 700; color: var(--text-white); line-height: 1.1;}
+        .stat-info p { font-size: 0.85rem; color: var(--text-gray); margin-top: 3px;}
+        
+        .timer-card { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px; text-align: center; border: 1px solid var(--glass-border);}
+        .countdown-box { display: flex; justify-content: center; gap: 10px; margin-top: 15px;}
+        .cd-item { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; min-width: 55px; border: 1px solid var(--glass-border); }
+        .cd-val { font-size: 1.3rem; font-weight: bold; font-family: 'Anton', sans-serif; color: var(--accent-magenta); display: block; }
+        .cd-lbl { font-size: 0.65rem; color: var(--text-gray); text-transform: uppercase; }
+
+        /* --- ELECTION CARDS --- */
+        .election-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+        .election-card { 
+            background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
+            border-radius: 20px; padding: 2rem; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.4s ease; display: flex; flex-direction: column;
+        }
+        .election-card:hover { border-color: var(--accent-magenta); box-shadow: 0 15px 40px rgba(217, 70, 239, 0.2); transform: translateY(-5px); }
+        .election-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 15px; }
+        .election-card h3 { font-size: 1.3rem; color: var(--text-white); flex-grow: 1; line-height: 1.3; }
+        
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+        .live { background: rgba(0, 184, 148, 0.12); color: var(--success); border: 1px solid rgba(0, 184, 148, 0.25); box-shadow: 0 0 15px rgba(0, 184, 148, 0.15); }
+        .live::before { content: ''; width: 7px; height: 7px; background-color: var(--success); border-radius: 50%; display: inline-block; animation: beaconPulse 1.8s infinite ease-in-out; }
+        @keyframes beaconPulse { 0% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); } 50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 0 5px rgba(0, 184, 148, 0); } 100% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); } }
+        .closed { background: rgba(214, 48, 49, 0.15); color: var(--danger); border: 1px solid rgba(214, 48, 49, 0.3); }
+        .voted { background: rgba(157, 80, 187, 0.15); color: var(--primary-purple); border: 1px solid rgba(157, 80, 187, 0.3); }
+
+        .btn-action { padding: 0.7rem 1.5rem; border-radius: 30px; font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: 0.3s; cursor: pointer; display: inline-block; margin-top: 20px;}
+        .btn-vote { background: linear-gradient(90deg, #9d50bb, #d946ef); color: white; box-shadow: 0 5px 20px rgba(217, 70, 239, 0.3); border: none;}
+        .btn-vote:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(217, 70, 239, 0.5); filter: brightness(1.1);}
+        .btn-view { background: rgba(128,128,128,0.1); color: var(--text-white); border: 1px solid var(--glass-border); }
+        .btn-disabled { background: rgba(255,255,255,0.05); color: var(--text-gray); border: 1px solid var(--glass-border); cursor: not-allowed; }
+
+        .btn-submit-vote {
+            background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta), var(--primary-purple));
+            background-size: 200% auto; color: white; border: none; padding: 1.2rem; font-size: 1.2rem; font-weight: 600;
+            border-radius: 15px; width: 100%; margin-top: 15px; cursor: pointer; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.4);
+            animation: gradientGlow 3s ease infinite; transition: transform 0.2s, filter 0.2s;
+        }
+        .btn-submit-vote:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 40px rgba(217, 70, 239, 0.6); }
+
+        /* --- SETTINGS SECTION --- */
+        .settings-card { 
+            background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); 
+            border-top: 1px solid var(--glass-highlight); border-radius: 20px; padding: 2.5rem; margin-bottom: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%;
+        }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; }
+        .settings-header h3 { color: var(--text-white); font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+        .settings-header h3 i { color: var(--accent-magenta); font-size: 1.6rem;}
+        
+        .profile-row { display: flex; gap: 30px; margin-bottom: 20px; align-items: flex-start; width: 100%; }
+        .profile-pic-large { width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-purple), var(--accent-magenta)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; box-shadow: 0 10px 25px rgba(217, 70, 239, 0.3); border: 3px solid rgba(255,255,255,0.1); color: white; flex-shrink: 0; text-transform: uppercase; overflow: hidden; position: relative; cursor: pointer;}
+        .profile-pic-large img { width: 100%; height: 100%; object-fit: cover;}
+        .profile-pic-large:hover::after { content: 'Upload'; position: absolute; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:normal;}
+        
+        .profile-info-wrapper { flex-grow: 1; width: 100%; }
+        .input-grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px; width: 100%; }
+
+        .input-group { margin-bottom: 5px; width: 100%; text-align: left; }
+        .input-group label { display: block; color: var(--text-gray); margin-bottom: 8px; font-size: 0.85rem; font-weight: 500;}
+        .input-group input { width: 100%; padding: 14px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-white); outline: none; font-family: 'Poppins', sans-serif; font-size: 0.95rem; transition: 0.3s;}
+        .input-group input:focus { border-color: var(--accent-magenta); }
+        .input-group input:read-only { opacity: 0.7; cursor: not-allowed; }
+        
+        .password-wrapper { position: relative; }
+        .password-wrapper input { padding-right: 40px; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-gray); z-index: 10; font-size: 1.3rem; transition: 0.3s;}
+        .toggle-password:hover { color: var(--text-white); }
+        .pwd-req-list { list-style: none; margin-top: 12px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--glass-border);}
+        .pwd-req-list li { font-size: 0.8rem; color: var(--text-gray); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; transition: color 0.3s; }
+        .pwd-req-list li.valid { color: var(--text-white); }
+        .pwd-req-list li.valid i { color: var(--success); }
+
+        /* --- VOTING BOOTH GRID --- */
+        .voting-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 30px; }
+        .candidate-card-selectable {
+            background: var(--glass-bg); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
+            border-radius: 20px; padding: 2rem; text-align: center; transition: all 0.4s ease; 
+            position: relative; cursor: pointer; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.1); height: 100%;
+        }
+        .candidate-card-selectable:hover { transform: translateY(-8px); border-color: rgba(217, 70, 239, 0.3); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+        .candidate-card-selectable:has(input:checked) { border-color: var(--accent-magenta); background: rgba(217,70,239,0.05); box-shadow: 0 10px 40px rgba(217, 70, 239, 0.2); transform: translateY(-8px) scale(1.02); }
+
+        .candidate-img { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; object-position: center 15%; border: 3px solid rgba(128,128,128,0.2); margin: 0 auto 20px auto; transition: all 0.4s ease; }
+        .candidate-card-selectable:hover .candidate-img { transform: scale(1.05); border-color: rgba(217, 70, 239, 0.5); }
+        .candidate-card-selectable:has(input:checked) .candidate-img { border-color: var(--accent-magenta); box-shadow: 0 10px 30px rgba(217, 70, 239, 0.3); }
+        
+        .candidate-name { font-size: 1.15rem; font-weight: 600; color: var(--text-white); margin-bottom: 5px; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; }
+        .candidate-faculty { font-size: 0.75rem; color: #74b9ff; background: rgba(116, 185, 255, 0.1); padding: 6px 12px; border-radius: 12px; display: inline-block; margin-bottom: 15px; font-weight: 500; line-height: 1.4; max-width: 90%; margin-left: auto; margin-right: auto;}
+        .candidate-manifesto { background: rgba(128, 128, 128, 0.1); padding: 15px; border-radius: 12px; font-size: 0.85rem; color: var(--text-gray); font-style: italic; border-left: 3px solid var(--primary-purple); flex-grow: 1; line-height: 1.5;}
+        
+        .radio-indicator { position: absolute; top: 20px; right: 20px; width: 24px; height: 24px; accent-color: var(--accent-magenta); cursor: pointer; z-index: 5; transform: scale(1.2); transition: 0.3s;}
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; opacity: 0; animation: fadeInModal 0.3s forwards;}
+        @keyframes fadeInModal { to { opacity: 1; } }
+        .modal-card { background: var(--modal-bg); color: var(--text-white); width: 90%; max-width: 420px; border-radius: 24px; padding: 3rem 2.5rem; position: relative; text-align: center; border: 1px solid rgba(217, 70, 239, 0.3); box-shadow: 0 25px 60px rgba(0,0,0,0.2); transform: scale(0.9); animation: popModal 0.3s forwards;}
+        @keyframes popModal { to { transform: scale(1); } }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: var(--text-gray); transition: 0.3s;}
+        .close-modal:hover { color: var(--danger); transform: rotate(90deg); }
+        
+        @media (max-width: 900px) { 
+            .sidebar { display: none; } .main-content { margin-left: 0; padding: 1.5rem; } 
+            .top-dash-wrapper { grid-template-columns: 1fr; }
+            .profile-row { flex-direction: column; align-items: center; text-align: center; } 
+            .input-grid-layout { grid-template-columns: 1fr; } 
+            .live-clock-container { align-items: flex-start; width: 100%; } 
+            .ambient-blob-1, .ambient-blob-2 { display: none; } 
+        }
+
+        /* --- SOLUTION 1: PREVENT MOBILE TAP HIGHLIGHTS GLOBALLY --- */
+        a, button, .election-card, .candidate-card-selectable, .nav-links a {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-blob-1"></div>
+    <div class="ambient-blob-2"></div>
+
+    <div class="dashboard-container">
+        
+        <aside class="sidebar">
+            <div class="logo"><span>⚡</span> E-Voting</div>
+            <ul class="nav-links">
+                <li><a onclick="switchView('dashboard')" class="active" id="nav-dashboard"><i class='bx bxs-dashboard'></i> Dashboard</a></li>
+                <li><a onclick="switchView('voting-booth')" id="nav-vote" style="display:none;"><i class='bx bxs-check-shield'></i> Vote Now</a></li>
+                <li><a onclick="switchView('settings')" id="nav-settings"><i class='bx bxs-cog'></i> Settings</a></li>
+            </ul>
+            <div class="user-profile">
+                {% if profile_pic %}
+                    <img src="{{ profile_pic }}" class="avatar">
+                {% else %}
+                    <div class="avatar">{{ full_name[:2] }}</div>
+                {% endif %}
+                <div class="user-info">
+                    <h4>{{ full_name }}</h4>
+                    <p>{{ matric_no }}</p>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn" title="Logout"><i class='bx bx-log-out'></i></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <header>
+                <div class="welcome-text">
+                    <h1>Hi, {{ full_name }}</h1>
+                    <p>Manage your academic democratic rights securely.</p>
+                </div>
+                <div class="live-clock-container">
+                    <div class="clock-time" id="clock">00:00:00</div>
+                    <div class="clock-date" id="date">Loading...</div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div style="background: rgba(0, 184, 148, 0.2); border: 1px solid var(--success); color: var(--success); padding: 15px; border-radius: 10px; margin-bottom: 20px;">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div id="view-dashboard" class="view-section active-view">
+                
+                <div class="top-dash-wrapper">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="icon-box purple"><i class='bx bxs-ballot'></i></div>
+                            <div class="stat-info"><h3 id="stat-total">0</h3><p>Total Elections</p></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon-box orange"><i class='bx bxs-time-five'></i></div>
+                            <div class="stat-info"><h3 id="stat-pending">0</h3><p>Pending Vote</p></div>
+                        </div>
+                    </div>
+                    
+                    <div class="timer-card">
+                        <h4 style="margin-bottom: 5px; color: var(--text-white);" id="student-timer-label">Public Election Timer</h4>
+                        <div class="countdown-box">
+                            <div class="cd-item"><span class="cd-val" id="std-cd-days">00</span><span class="cd-lbl">Days</span></div>
+                            <div class="cd-item"><span class="cd-val" id="std-cd-hours">00</span><span class="cd-lbl">Hours</span></div>
+                            <div class="cd-item"><span class="cd-val" id="std-cd-minutes">00</span><span class="cd-lbl">Mins</span></div>
+                            <div class="cd-item"><span class="cd-val" id="std-cd-seconds">00</span><span class="cd-lbl">Secs</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 25px; font-weight: 600; font-size: 1.5rem;">Active Ballot Sessions</h2>
+                <div class="election-grid" id="election-container">
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-gray); padding: 4rem; background: var(--glass-bg); border-radius: 20px;">
+                        <i class='bx bx-sleepy' style="font-size: 4rem; margin-bottom: 15px; display: block;"></i>
+                        <p>No active elections found.<br>Please wait for the Administrator to publish an election.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-settings" class="view-section">
+                <h2 style="margin-bottom: 25px; font-weight: 600; font-size: 1.5rem;">My Profile & Security</h2>
+                
+                <div class="settings-card">
+                    <form action="/update-profile-pic" method="POST" enctype="multipart/form-data" style="margin-bottom: 25px; display: flex; gap: 30px; border-bottom: 1px solid var(--glass-border); padding-bottom: 25px;">
+                        <label for="pic-upload" class="profile-pic-large">
+                            {% if profile_pic %}
+                                <img src="{{ profile_pic }}">
+                            {% else %}
+                                {{ full_name[:2] }}
+                            {% endif %}
+                        </label>
+                        <input type="file" id="pic-upload" name="profile_pic" accept="image/*" style="display:none;" onchange="this.form.submit()">
+                        <div>
+                            <h3 style="font-size: 1.2rem; margin-bottom: 5px;">Profile Picture</h3>
+                            <p style="color: var(--text-gray); font-size: 0.85rem; margin-bottom: 15px;">Click the avatar circle to upload a new profile image. It will sync automatically.</p>
+                        </div>
+                    </form>
+
+                    <form action="/update-profile" method="POST">
+                        <div class="settings-header" style="border:none; margin-bottom:15px; padding:0;">
+                            <h3><i class='bx bxs-id-card'></i> Student Information</h3>
+                            <button type="submit" class="btn-action btn-vote" style="margin:0; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem;"><i class='bx bx-save'></i> Save Changes</button>
+                        </div>
+                        <div class="profile-info-wrapper">
+                            <div class="input-grid-layout">
+                                <div class="input-group"><label>Full Name</label><input type="text" name="full_name" value="{{ full_name }}" required></div>
+                                <div class="input-group"><label>Matric Number</label><input type="text" value="{{ matric_no }}" readonly></div>
+                                <div class="input-group"><label>Faculty</label><input type="text" value="{{ faculty }}" readonly></div>
+                                <div class="input-group"><label>Email Address</label><input type="email" value="{{ email }}" readonly></div>
+                                <div class="input-group"><label>Phone Number</label><input type="text" name="phone_number" value="{{ phone }}"></div>
+                                <div class="input-group" style="grid-column: span 2;"><label>Residential Address</label><input type="text" name="residential_address" value="{{ address }}"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-header"><h3><i class='bx bxs-lock-alt'></i> Security Settings</h3></div>
+                    <div style="background: var(--glass-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                        <div><strong style="display: block; font-size: 1.1rem;">Account Password</strong><span style="color: var(--text-gray); font-size: 0.85rem;">Update your encryption key to secure your voting identity.</span></div>
+                        <button type="button" onclick="document.getElementById('password-modal').style.display='flex'" class="btn-action btn-vote" style="margin: 0;"><i class='bx bx-key'></i> Change</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-voting-booth" class="view-section">
+                <div style="background: rgba(217, 70, 239, 0.1); border: 1px solid rgba(217, 70, 239, 0.3); padding: 20px 25px; border-radius: 15px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h2 style="margin-bottom: 5px; font-size: 1.6rem;" id="booth-title">Voting Booth</h2>
+                        <p id="booth-msg" style="color: var(--text-gray); font-size: 0.95rem;">Select your candidates below.</p>
+                    </div>
+                    <i class='bx bxs-check-shield' style="font-size: 3rem; color: var(--accent-magenta); opacity: 0.5;"></i>
+                </div>
+                
+                <form id="vote-form" onsubmit="event.preventDefault(); askForConfirmation();">
+                    <div class="voting-grid" id="candidates-list-container">
+                        </div>
+                    <button type="submit" class="btn-submit-vote"><i class='bx bxs-lock-alt'></i> Secure & Cast My Vote</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div id="password-modal" class="modal-overlay">
+        <form action="/change-password-dashboard" method="POST" class="modal-card" style="text-align: left; max-width: 480px;">
+            <span class="close-modal" onclick="closeModal('password-modal')">&times;</span>
+            <h3 style="text-align: center; margin-bottom: 25px; font-size: 1.4rem;">Update Password</h3>
+            
+            <div class="input-group">
+                <label>New Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="new_password" id="new_pwd" placeholder="Enter new password" required>
+                    <i class='bx bx-show toggle-password' onclick="togglePassword('new_pwd', this)"></i>
+                </div>
+                <ul class="pwd-req-list">
+                    <li id="req-len"><i class='bx bx-circle'></i> Min 8 characters</li>
+                    <li id="req-num"><i class='bx bx-circle'></i> At least one number (0-9)</li>
+                    <li id="req-sym"><i class='bx bx-circle'></i> At least one symbol (!@#$)</li>
+                    <li id="req-cap"><i class='bx bx-circle'></i> At least one uppercase (A-Z)</li>
+                </ul>
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 25px;">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirm_pwd" placeholder="Repeat new password" required>
+                    <i class='bx bx-show toggle-password' onclick="togglePassword('confirm_pwd', this)"></i>
+                </div>
+            </div>
+            <button type="submit" onclick="return validatePasswordMatch()" class="btn-action btn-vote" style="width: 100%; border: none; padding:14px; border-radius: 10px; font-size: 1.05rem;">Update Security Key</button>
+        </form>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay" onclick="closeOutside(event, 'confirm-modal')">
+        <div class="modal-card">
+            <h3 style="font-size: 1.5rem;">Final Confirmation</h3>
+            <p style="margin: 20px 0; color: var(--text-gray);">You are about to cast your vote. This action is immutable and cannot be undone.<br><br><strong id="confirm-name" style="color:var(--text-white); font-size:1.2rem;"></strong></p>
+            <button onclick="submitFinalVote()" class="btn-action btn-vote" style="width:100%; margin-bottom:15px; border:none; padding:14px; border-radius: 12px;">Yes, Cast My Vote</button>
+            <button onclick="closeModal('confirm-modal')" class="btn-action btn-view" style="width:100%; margin-top:0;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="receipt-modal" class="modal-overlay" onclick="closeOutside(event, 'receipt-modal')">
+        <div class="modal-card">
+            <span class="close-modal" onclick="closeModal('receipt-modal'); switchView('dashboard')">&times;</span>
+            <div style="font-size: 5rem; color: var(--success);"><i class='bx bxs-check-circle'></i></div>
+            <h2 style="margin-bottom:15px;">Vote Secured!</h2>
+            <p style="color: var(--text-gray); margin-bottom:25px;">Your identity has been verified and your vote is now locked into the blockchain ledger.</p>
+            <button class="btn-action btn-vote" style="width:100%; border:none; padding:14px; border-radius:12px;" onclick="closeModal('receipt-modal'); switchView('dashboard')">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <script id="candidates-data" type="application/json">{{ candidates | tojson | safe }}</script>
+    <script id="voted-elections-data" type="application/json">{{ voted_elections | tojson | safe }}</script>
+    <script id="voted-elections-hash-data" type="application/json">{{ voted_elections_data | tojson | safe }}</script>
+
+    <script>
+        const candidateData = JSON.parse(document.getElementById('candidates-data').textContent || '[]');
+        const votedElections = JSON.parse(document.getElementById('voted-elections-data').textContent || '[]');
+        const votedElectionsData = JSON.parse(document.getElementById('voted-elections-hash-data').textContent || '{}');
+        const studentFacultyStr = "{{ faculty | safe }}";
+
+        let activeElectionId = null;
+        let activeElectionType = null;
+
+
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+            document.getElementById('date').innerText = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }, 1000);
+
+        // Fetch DB Data and Render Election Dashboard Cards
+        document.addEventListener('DOMContentLoaded', () => { 
+            loadDynamicElections(); 
+            setInterval(loadDynamicElections, 5000); 
+        });
+        
+        let lastPublicStatus = null;
+        let lastFacultyStatus = null;
+
+        function loadDynamicElections() {
+            fetch('/api/get-system-settings')
+            .then(res => res.json())
+            .then(settings => {
+                const container = document.getElementById('election-container');
+                container.innerHTML = ""; 
+                let pending = 0;
+                const now = Date.now();
+
+                // Evaluate Public Session (Only if ID exists, hiding it if Superadmin Wipes it)
+                // Evaluate Public Session 
+                if (settings.public_election_id) {
+                    const startTs = new Date(settings.public_start_time).getTime();
+                    const endTs = new Date(settings.public_end_time).getTime(); // FIX HERE
+                    const status = determineStatus(startTs, endTs, now, settings.public_election_status);
+                    renderElectionCard(container, settings.public_election_id, 'MPP General Election 2026', 'General Representatives', status, 'public');
+                    if(status === 'Live' && !votedElections.includes(settings.public_election_id)) pending++;
+                }
+                
+                // Evaluate Faculty Session
+                if (settings.faculty_election_id && settings.target_faculty === studentFacultyStr) {
+                    const startTs = new Date(settings.faculty_start_time).getTime();
+                    const endTs = new Date(settings.faculty_end_time).getTime(); // FIX HERE
+                    const status = determineStatus(startTs, endTs, now, settings.faculty_election_status);
+                    renderElectionCard(container, settings.faculty_election_id, 'Faculty Representatives 2026', studentFacultyStr, status, 'faculty');
+                    if(status === 'Live' && !votedElections.includes(settings.faculty_election_id)) pending++;
+                }
+
+                if (container.innerHTML === "") {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; color: var(--text-gray); padding: 4rem; background: var(--glass-bg); border-radius: 20px;">
+                            <i class='bx bx-sleepy' style="font-size: 4rem; margin-bottom: 15px; display: block;"></i>
+                            <p>No active elections found.<br>Please wait for the Administrator to publish an election.</p>
+                        </div>`;
+                }
+
+                document.getElementById('stat-total').innerText = container.children.length > 0 ? container.children.length : 0;
+                document.getElementById('stat-pending').innerText = pending;
+            });
+        }
+
+        // Updated to detect Superadmin Emergency Pause
+        function determineStatus(startTs, endTs, now, dbStatus) {
+            if (dbStatus === 'Paused') return "Paused";
+            if (dbStatus === 'Ended' || now > endTs) return "Ended";
+            if (now < startTs) return "Pending";
+            return "Live";
+        }
+
+        function renderElectionCard(container, id, title, subtitle, status, type) {
+            const hasVoted = votedElections.includes(id);
+            const card = document.createElement('div');
+            card.className = 'election-card';
+            
+            let actionHTML = ''; let badgeClass = '';
+            let dispStatus = status;
+
+            if (hasVoted) {
+                const txHash = votedElectionsData[id] || "Hash Pending Sync...";
+                actionHTML = `
+                    <div class="vote-receipt" style="background: rgba(0, 184, 148, 0.1); border: 1px solid #00b894; padding: 15px; border-radius: 10px; margin-top: 10px; text-align: left;">
+                        <h4 style="color: #00b894; margin-bottom: 5px; font-size: 0.95rem;"><i class='bx bx-check-shield'></i> Vote Secured</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-gray); margin-bottom: 3px;">Blockchain Verification Hash:</p>
+                        <code style="color: var(--accent-magenta); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; word-break: break-all;">
+                            ${txHash}
+                        </code>
+                    </div>
+                `;
+                badgeClass = 'voted'; dispStatus = 'Already Voted';
+            } else if (status === 'Paused') {
+                actionHTML = `<a class="btn-action btn-disabled" disabled style="width:100%;text-align:center; opacity:0.6; cursor:not-allowed;"><i class='bx bx-error'></i> System Locked by Admin</a>`;
+                badgeClass = 'closed';
+            } else if (status === 'Ended') {
+                actionHTML = `<a class="btn-action btn-disabled" disabled style="width:100%;text-align:center;"><i class='bx bx-x-circle'></i> Election Ended</a>`;
+                badgeClass = 'closed';
+            } else if (status === 'Pending') {
+                actionHTML = `<a class="btn-action btn-disabled" disabled style="width:100%;text-align:center;"><i class='bx bx-time-five'></i> Starts Soon</a>`;
+                badgeClass = 'closed';
+            } else {
+                actionHTML = `<a onclick="enterBoothDirectly('${id}', '${title}', '${type}')" class="btn-action btn-vote" style="width:100%;text-align:center;"><i class='bx bx-door-open'></i> Enter Booth</a>`;
+                badgeClass = 'live';
+            }
+
+            card.innerHTML = `
+                <div class="election-card-header">
+                    <h3>${title}</h3>
+                    <div class="status-badge ${badgeClass}">${dispStatus}</div>
+                </div>
+                <p style="color:var(--info); font-size:0.85rem; margin-bottom:15px;">Election ID: ${id} <br> Scope: ${subtitle}</p>
+                <div style="margin-top:auto;">${actionHTML}</div>`;
+            container.appendChild(card);
+        }
+
+        function enterBoothDirectly(electionId, title, type) {
+            activeElectionId = electionId;
+            activeElectionType = type;
+            document.getElementById('booth-title').innerText = title;
+            let msg = type === 'public' ? "Select up to 2 candidates for the General Election." : "Select 1 candidate to represent your Faculty.";
+            document.getElementById('booth-msg').innerText = msg;
+            
+            const listContainer = document.getElementById('candidates-list-container');
+            listContainer.innerHTML = "";
+            let filteredCandidates = type === 'faculty' ? candidateData.filter(c => c.faculty === studentFacultyStr) : candidateData;
+
+            if(filteredCandidates.length === 0) {
+                listContainer.innerHTML = `<p style="grid-column:1/-1; text-align:center;">No candidates registered for this scope.</p>`;
+            } else {
+                filteredCandidates.forEach(c => {
+                    const inputType = type === 'public' ? 'checkbox' : 'radio';
+                    const wrapper = document.createElement('label');
+                    wrapper.className = 'candidate-card-selectable';
+                    wrapper.innerHTML = `
+                        <input type="${inputType}" name="candidate_vote" value="${c.candidate_id}" class="radio-indicator vote-input" onchange="enforceLimits(this)">
+                        <img src="${c.avatar_path}" class="candidate-img" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=d946ef&color=fff'">
+                        <h3 class="candidate-name">${c.name}</h3>
+                        <div class="candidate-faculty">${c.faculty}</div>
+                        <div class="candidate-manifesto">"${c.manifesto}"</div>
+                    `;
+                    listContainer.appendChild(wrapper);
+                });
+            }
+            switchView('voting-booth');
+        }
+
+        function enforceLimits(checkbox) {
+            if (activeElectionType === 'public') {
+                const checkedCount = document.querySelectorAll('input[name="candidate_vote"]:checked').length;
+                if (checkedCount > 2) {
+                    checkbox.checked = false;
+                    alert("Maximum limit reached. You can only select up to 2 candidates for the Public Election.");
+                }
+            }
+        }
+
+        function askForConfirmation() {
+            const selected = Array.from(document.querySelectorAll('input[name="candidate_vote"]:checked'));
+            if (selected.length === 0) return alert("You must select at least one candidate to cast a vote.");
+            document.getElementById('confirm-name').innerText = `${selected.length} Candidate(s) Selected`;
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        function submitFinalVote() {
+            // FIX: Target the button and freeze it instantly to prevent double-clicks
+            const btn = document.querySelector('#confirm-modal .btn-vote');
+            btn.disabled = true;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Submitting to Ledger...";
+            
+            const selectedIds = Array.from(document.querySelectorAll('input[name="candidate_vote"]:checked')).map(cb => parseInt(cb.value));
+            
+            fetch('/submit-vote', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ election_id: activeElectionId, candidate_ids: selectedIds })
+            }).then(r => r.json()).then(data => {
+                
+                // Unlock the button after a response is received
+                btn.disabled = false;
+                btn.innerHTML = "Yes, Cast My Vote";
+                
+                if(data.success) {
+                    votedElections.push(activeElectionId); 
+                    votedElectionsData[activeElectionId] = data.txId || "Awaiting block confirmation..."; 
+                    document.getElementById('confirm-modal').style.display = 'none';
+                    switchView('dashboard');
+                    loadDynamicElections(); 
+                    document.getElementById('receipt-modal').style.display = 'flex';
+                } else {
+                    alert(data.message); 
+                    document.getElementById('confirm-modal').style.display = 'none';
+                    switchView('dashboard'); 
+                }
+            }).catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = "Yes, Cast My Vote";
+                alert("Network communication error with the ledger.");
+            });
+        }
+
+        // --- GLOBAL REAL-TIME 1-SECOND SYNC LOGIC ---
+        setInterval(function() {
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const now = new Date().getTime();
+                
+                // 1. Detect Emergency Overrides Instantly
+                if (settings.public_election_status !== lastPublicStatus || settings.faculty_election_status !== lastFacultyStatus) {
+                    lastPublicStatus = settings.public_election_status;
+                    lastFacultyStatus = settings.faculty_election_status;
+                    
+                    loadDynamicElections(); // Re-render card lock status immediately
+                    
+                    // Boot student from voting booth if Admin hits Pause
+                    if (activeElectionId) {
+                        if (activeElectionType === 'public' && settings.public_election_status !== 'Live') {
+                            alert("EMERGENCY OVERRIDE: The Public Election has been suspended by the System Administrator.");
+                            switchView('dashboard');
+                        } else if (activeElectionType === 'faculty' && settings.faculty_election_status !== 'Live') {
+                            alert("EMERGENCY OVERRIDE: Your Faculty Election has been suspended by the System Administrator.");
+                            switchView('dashboard');
+                        }
+                    }
+                }
+
+                // 2. Clock & Countdown
+                let distance = 0;
+                if (settings.public_election_status === 'Live' && settings.public_start_time) {
+                    const startTs = new Date(settings.public_start_time).getTime();
+                    const endTs = new Date(settings.public_end_time).getTime(); // FIX HERE
+
+                    if (now < startTs) {
+                        document.getElementById("student-timer-label").innerText = "Election Starts In";
+                        distance = startTs - now;
+                    } else if (now >= startTs && now <= endTs) {
+                        document.getElementById("student-timer-label").innerText = "Election Ends In (Live)";
+                        distance = endTs - now;
+                    } else {
+                        document.getElementById("student-timer-label").innerText = "Public Election Ended";
+                    }
+                } else if (settings.public_election_status === 'Paused') {
+                    document.getElementById("student-timer-label").innerText = "Election Paused by Admin";
+                } else {
+                    document.getElementById("student-timer-label").innerText = "No Public Election Scheduled";
+                }
+
+                if (distance > 0) {
+                    document.getElementById("std-cd-days").innerText = Math.floor(distance / 86400000).toString().padStart(2, '0');
+                    document.getElementById("std-cd-hours").innerText = Math.floor((distance % 86400000) / 3600000).toString().padStart(2, '0');
+                    document.getElementById("std-cd-minutes").innerText = Math.floor((distance % 3600000) / 60000).toString().padStart(2, '0');
+                    document.getElementById("std-cd-seconds").innerText = Math.floor((distance % 60000) / 1000).toString().padStart(2, '0');
+                } else {
+                    document.getElementById("std-cd-days").innerText = "00"; document.getElementById("std-cd-hours").innerText = "00";
+                    document.getElementById("std-cd-minutes").innerText = "00"; document.getElementById("std-cd-seconds").innerText = "00";
+                }
+            });
+        }, 1000);
+
+        // --- PASSWORD VALIDATION ---
+        document.getElementById('new_pwd').addEventListener('input', function() {
+            const val = this.value;
+            toggleValid('req-len', val.length >= 8); 
+            toggleValid('req-num', /\d/.test(val));
+            toggleValid('req-sym', /[!@#$%^&*]/.test(val)); 
+            toggleValid('req-cap', /[A-Z]/.test(val));
+        });
+
+        function toggleValid(id, isValid) { 
+            const el = document.getElementById(id); 
+            const icon = el.querySelector('i');
+            if(isValid) { el.classList.add('valid'); icon.classList.replace('bx-circle', 'bxs-check-circle'); } 
+            else { el.classList.remove('valid'); icon.classList.replace('bxs-check-circle', 'bx-circle'); }
+        }
+
+        function validatePasswordMatch() {
+            const p1 = document.getElementById('new_pwd').value; const p2 = document.getElementById('confirm_pwd').value;
+            if (!p1 || !p2) { alert("Please enter a password."); return false; }
+            if (p1 !== p2) { alert("Passwords do not match."); return false; }
+            if (p1.length < 8 || !/\d/.test(p1) || !/[!@#$%^&*]/.test(p1) || !/[A-Z]/.test(p1)) { alert("Password does not meet requirements."); return false; }
+            return true;
+        }
+
+        function togglePassword(fieldId, icon) {
+            const input = document.getElementById(fieldId);
+            if (input.type === "password") { input.type = "text"; icon.classList.replace('bx-show', 'bx-hide'); } 
+            else { input.type = "password"; icon.classList.replace('bx-hide', 'bx-show'); }
+        }
+
+        // --- UI NAVIGATION ---
+        function switchView(viewName) {
+            if(viewName === 'dashboard') { activeElectionId = null; activeElectionType = null; }
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+            document.getElementById('view-' + viewName).classList.add('active-view');
+            document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+            const navId = 'nav-' + (viewName === 'voting-booth' ? 'vote' : viewName);
+            const navLink = document.getElementById(navId);
+            if(navLink) navLink.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function closeOutside(event, modalId) { if (event.target === document.getElementById(modalId)) closeModal(modalId); }
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Setup | UTHM E-Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary-purple: #9d50bb;
+            --accent-magenta: #d946ef;
+            --text-white: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: var(--text-white); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem 5%; }
+        .signup-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 3rem; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }
+        .header h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; }
+        .header p { color: #ccc; font-size: 0.9rem; margin-bottom: 2rem; }
+        .input-group { margin-bottom: 1.5rem; text-align: left;}
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: #fff;}
+        .input-wrapper { position: relative; width: 100%; }
+        .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: #ffffff; outline: none; font-size: 1rem; }
+        .input-group input:focus { border-color: var(--accent-magenta); }
+        .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #ffffff; font-size: 1.3rem; }
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta)); border: none; border-radius: 8px; color: #ffffff; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="signup-card">
+        <div class="header">
+            <div style="font-size: 3.5rem; color: var(--accent-magenta); margin-bottom: 10px;"><i class='bx bx-envelope'></i></div>
+            <h2>Email Verification</h2>
+            <p>Please enter your registered student email address to receive your 6-digit verification code.</p>
+        </div>
+        <form action="/submit-email" method="POST">
+            <div class="input-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class='bx bx-envelope input-icon'></i>
+                    <input type="email" name="email" placeholder="username@student.uthm.edu.my" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Request OTP Code</button>
+        </form>
+    </div>
+</body>
+</html>

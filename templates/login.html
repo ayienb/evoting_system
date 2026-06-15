@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | UTHM E-Voting</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary-purple: #9d50bb;
+            --accent-magenta: #d946ef;
+            --text-white: #ffffff;
+            --text-gray: #b3b3b3;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --danger: #ff7675;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-white);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .blob-bg {
+            position: absolute; width: 600px; height: 600px;
+            background: linear-gradient(180deg, #6a11cb 0%, #d946ef 100%);
+            border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+            filter: blur(60px); z-index: -1; opacity: 0.3;
+            animation: morph 10s ease-in-out infinite;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h2 { font-size: 1.8rem; font-weight: 700; }
+        .header p { color: var(--text-gray); font-size: 0.9rem; }
+
+        #lockout-msg {
+            display: none;
+            background: rgba(255, 118, 117, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .input-group { margin-bottom: 1.5rem; position: relative; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-gray); }
+        .input-group input {
+            width: 100%; padding: 12px 15px 12px 40px; background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border); border-radius: 8px; color: white;
+            outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: var(--accent-magenta); }
+        .input-group i { position: absolute; top: 35px; left: 15px; color: var(--text-gray); font-size: 1.2rem; }
+
+        .btn-submit {
+            width: 100%; padding: 12px;
+            background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta));
+            border: none; border-radius: 8px; color: white;
+            font-weight: 600; cursor: pointer; transition: transform 0.2s;
+        }
+        .btn-submit:disabled { background: #444; cursor: not-allowed; transform: none; opacity: 0.6; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); }
+
+        .form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-gray); }
+        .form-footer a { color: var(--accent-magenta); text-decoration: none; font-weight: 600; cursor: pointer; }
+
+        @keyframes morph {
+            0%, 100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+            50% { border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob-bg"></div>
+
+    <div class="login-card">
+        <div class="header">
+            <h2>Welcome Back</h2>
+            <p>Access the E-Voting Portal</p>
+        </div>
+
+        <div id="lockout-msg">System Locked. Try again in <span id="timer">60</span>s.</div>
+
+        <form id="login-form" action="/login" method="POST">
+            <div class="input-group">
+                <label>Email Address</label>
+                <i class='bx bx-envelope'></i>
+                <input type="email" id="username" name="username" placeholder="student@uthm.edu.my" required autocomplete="off">
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <i class='bx bx-lock-alt'></i>
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
+            </div>
+
+            <div class="form-footer" style="text-align: center; margin-top: -10px; margin-bottom: 20px;">
+                <a href="/forgot-password" style="display: block;">Forgot Password?</a>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <p id="error-alert" style="color: var(--danger); font-size: 0.85rem; text-align: center; margin-bottom: 15px; font-weight: 500;">
+                    {{ messages[0] }}
+                </p>
+              {% endif %}
+            {% endwith %}
+
+            <button type="submit" class="btn-submit" id="btn-login">Login</button>
+            
+            <div class="form-footer">
+                Don't have an account? <a href="/signup">Sign Up Here</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let attempts = 0;
+        let lockoutTime = 60;
+
+        window.onload = function() {
+            const lockedUntil = localStorage.getItem('lockedUntil');
+            if (lockedUntil && Date.now() < lockedUntil) {
+                startLockout(Math.ceil((lockedUntil - Date.now()) / 1000));
+            }
+        };
+
+        function startLockout(seconds) {
+            const msg = document.getElementById('lockout-msg');
+            const timerSpan = document.getElementById('timer');
+            const btnLogin = document.getElementById('btn-login');
+            const errorAlert = document.getElementById('error-alert');
+
+            if(errorAlert) errorAlert.style.display = 'none';
+            msg.style.display = 'block';
+            btnLogin.disabled = true;
+
+            let remaining = seconds;
+            const interval = setInterval(() => {
+                remaining--;
+                timerSpan.innerText = remaining;
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    msg.style.display = 'none';
+                    btnLogin.disabled = false;
+                    localStorage.removeItem('lockedUntil');
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

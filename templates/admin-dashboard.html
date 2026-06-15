@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | UniPoll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { 
+            --bg-dark: #0f0c29; --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); 
+            --sidebar-bg: rgba(15, 12, 41, 0.85); --glass-bg: rgba(255, 255, 255, 0.03); 
+            --glass-border: rgba(255, 255, 255, 0.1); --accent-magenta: #d946ef; --primary-purple: #9d50bb; 
+            --text-white: #ffffff; --text-gray: #b3b3b3; --success: #00b894; --warning: #fdcb6e; --danger: #ff7675; --info: #74b9ff; --modal-bg: #1a1a2e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: var(--text-white); min-height: 100vh; overflow-x: hidden; }
+        .dashboard-container { display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 260px; background: var(--sidebar-bg); backdrop-filter: blur(20px); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 2.5rem 2rem; position: fixed; height: 100%; z-index: 100; box-shadow: 5px 0 25px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.4rem; font-weight: 700; margin-bottom: 3rem; display: flex; align-items: center; gap: 10px; }
+        
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links li { margin-bottom: 0.2rem; }
+        .nav-links a { display: flex; align-items: center; gap: 15px; padding: 1rem; color: var(--text-gray); text-decoration: none; border-radius: 12px; cursor: pointer; font-weight: 500;}
+        .nav-links a.active { background: linear-gradient(90deg, rgba(217, 70, 239, 0.15), transparent); color: var(--text-white); border-left: 4px solid var(--accent-magenta); }
+        
+        .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 4rem; width: calc(100% - 260px); }
+        .view-section { display: none; }
+        .view-section.active-view { display: block; }
+        
+        .admin-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px 25px; border-radius: 15px; border: 1px solid var(--glass-border); gap: 15px;}
+        .table-container { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1rem; margin-bottom: 2rem; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; border-bottom: 1px solid var(--glass-border); text-align: left; }
+        th { font-size: 0.85rem; text-transform: uppercase; color: var(--text-gray); font-weight: 600; }
+        
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-active { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+        .badge-inactive { background: rgba(255, 118, 117, 0.15); color: var(--danger); }
+        .badge-pending { background: rgba(253, 203, 110, 0.15); color: var(--warning); }
+        
+        .btn-primary { background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta)); color: white; padding: 0.7rem 1.5rem; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; transition: 0.3s; }
+        .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.3); transform: translateY(-2px); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; }
+        .modal-card { background: var(--modal-bg); width: 90%; max-width: 500px; border-radius: 20px; padding: 2.5rem; border: 1px solid var(--accent-magenta); position: relative; }
+        .input-group { margin-bottom: 15px; text-align: left;}
+        .input-group label { display: block; color: var(--text-gray); margin-bottom: 5px; font-size: 0.85rem;}
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 10px; color: white; outline: none; }
+        
+        .dash-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .welcome-text h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px;}
+        .welcome-text p { color: var(--text-gray); margin-top: 5px;}
+        .live-clock-container { display: flex; flex-direction: column; align-items: flex-end; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: 0.4s ease;}
+        .clock-time { font-size: 1.4rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent-magenta); letter-spacing: 1px;}
+        .clock-date { font-size: 0.8rem; color: var(--text-gray); }
+
+        .countdown-box { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .cd-item { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; min-width: 60px; text-align: center; border: 1px solid var(--glass-border); }
+        .cd-val { font-size: 1.5rem; font-weight: bold; font-family: 'Anton', sans-serif; color: var(--accent-magenta); display: block;}
+        .cd-lbl { font-size: 0.7rem; color: var(--text-gray); text-transform: uppercase; }
+        
+        .v-bar-chart { display: flex; justify-content: space-around; align-items: flex-end; height: 200px; padding-top: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px;}
+        .v-bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; width: 40px; position: relative;}
+        .v-bar-wrap { height: 150px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 8px 8px 0 0; display: flex; align-items: flex-end;}
+        .v-bar-fill { width: 100%; border-radius: 8px 8px 0 0; background: linear-gradient(0deg, var(--primary-purple), var(--accent-magenta)); transition: height 0.5s ease;}
+        .v-bar-lbl { font-size: 0.75rem; color: var(--text-gray); margin-top: 8px;}
+        .analysis-box { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px; border: 1px solid rgba(217, 70, 239, 0.2); }
+        
+        /* PDF STYLES */
+        .pdf-render-area { background: #ffffff !important; color: #333333 !important; padding: 50px 60px; font-family: 'Helvetica', 'Arial', sans-serif; width: 850px; margin: 0; box-sizing: border-box; }
+        .pdf-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1a237e; padding-bottom: 20px; margin-bottom: 30px; }
+        .pdf-header-title h1 { color: #1a237e !important; font-size: 2.2rem; margin: 0 0 5px 0; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;}
+        .pdf-header-title p { margin: 0; color: #555 !important; font-size: 0.95rem; font-weight: bold;}
+        .pdf-meta { text-align: right; font-size: 0.85rem; color: #666 !important; }
+        .pdf-meta strong { color: #333 !important; display: inline-block; width: 100px;}
+        
+        .pdf-summary-cards { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 40px; }
+        .pdf-card { flex: 1; background: #f8f9fa !important; border: 1px solid #e0e0e0 !important; border-left: 5px solid #1a237e !important; padding: 20px; border-radius: 4px; }
+        .pdf-card h3 { margin: 0 0 5px 0; font-size: 2rem; color: #1a237e !important; }
+        .pdf-card p { margin: 0; font-size: 0.85rem; color: #666 !important; text-transform: uppercase; font-weight: 600;}
+        
+        .pdf-section-title { font-size: 1.2rem; color: #1a237e !important; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;}
+        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+        .pdf-table th { background-color: #1a237e !important; color: #ffffff !important; padding: 12px 15px; text-align: left; font-size: 0.85rem; text-transform: uppercase;}
+        .pdf-table td { padding: 12px 15px; border-bottom: 1px solid #eeeeee !important; color: #333 !important; font-size: 0.95rem;}
+        .pdf-table tr:nth-child(even) td { background-color: #fcfcfc !important; }
+        
+        .pdf-footer { text-align: center; margin-top: 50px; font-size: 0.8rem; color: #888 !important; border-top: 1px solid #e0e0e0; padding-top: 20px;}
+        .pdf-footer strong { color: #333 !important; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="/static/image/UniPoll Logo.png" alt="UniPoll Logo" style="height: 35px; object-fit: contain;">
+                UniPoll Admin
+            </div>
+            <ul class="nav-links">
+                <li><a onclick="switchView('dashboard')" class="active" id="nav-dashboard"><i class='bx bxs-dashboard'></i> Overview</a></li>
+                <li><a onclick="switchView('candidates')" id="nav-candidates"><i class='bx bxs-user-badge'></i> Candidates List</a></li>
+                <li><a onclick="switchView('manage-candidates')" id="nav-manage-candidates"><i class='bx bx-edit'></i> Manage Candidates</a></li>
+                <li><a onclick="switchView('session')" id="nav-session"><i class='bx bx-time-five'></i> Voting Session</a></li>
+                <li><a onclick="switchView('results')" id="nav-results"><i class='bx bx-poll'></i> Live Results</a></li>
+                <li><a onclick="switchView('activity')" id="nav-activity"><i class='bx bx-pulse'></i> Activity Log</a></li>
+                <li><a onclick="switchView('reporting')" id="nav-reporting"><i class='bx bx-bar-chart-alt-2'></i> Reporting</a></li>
+            </ul>
+            
+            <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 184, 148, 0.2); border: 1px solid var(--success); display: flex; align-items: center; justify-content: center; color: var(--success); font-size: 1.2rem;">
+                        <i class='bx bx-check-shield'></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 600; margin: 0; color: white;">System Admin</h4>
+                        <p style="font-size: 0.75rem; color: var(--success); margin: 0;">Master Access</p>
+                    </div>
+                </div>
+                <a href="/logout" style="color: var(--accent-magenta); font-size: 1.4rem; text-decoration: none; margin-top: 5px; transition: 0.3s;"><i class='bx bx-log-out-circle'></i></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <header>
+                <div class="welcome-text">
+                    <h1>Admin Console</h1>
+                    <p>Monitor and manage the election ecosystem securely.</p>
+                </div>
+                <div class="live-clock-container">
+                    <div class="clock-time" id="clock">00:00:00 PM</div>
+                    <div class="clock-date" id="date">Loading...</div>
+                </div>
+            </header>
+
+            <div id="view-dashboard" class="view-section active-view">
+                <h2 style="margin-bottom: 20px; font-size: 1.5rem;">System Overview</h2>
+                <div class="dash-grid" style="display:grid; grid-template-columns: repeat(3,1fr); gap:20px; margin-bottom:20px;">
+                    <div class="dash-card" style="padding:30px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(157, 80, 187, 0.2), rgba(157, 80, 187, 0.05)); border: 1px solid rgba(157, 80, 187, 0.3);">
+                        <h3 style="font-size: 2.5rem; margin-bottom: 5px; color: #e0aaff;" id="admin-total-reg">0</h3>
+                        <p style="color: var(--text-gray); font-size: 0.95rem;">Total Registered Voters</p>
+                    </div>
+                    <div class="dash-card" style="padding:30px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(0, 184, 148, 0.2), rgba(0, 184, 148, 0.05)); border: 1px solid rgba(0, 184, 148, 0.3);">
+                        <h3 style="font-size: 2.5rem; margin-bottom: 5px; color: var(--success);" id="admin-total-voted">0</h3>
+                        <p style="color: var(--text-gray); font-size: 0.95rem;">Total Voted Tally</p>
+                    </div>
+                    <div class="dash-card" style="text-align: center; background: rgba(0,0,0,0.2);">
+                        <h4 id="admin-timer-label" style="margin-bottom: 5px; color: white; font-size: 1.1rem;">Public Session Countdown</h4>
+                        <div class="countdown-box" style="margin-top: 0; justify-content: center;">
+                            <div class="cd-item"><span class="cd-val" id="admin-cd-days">00</span><span class="cd-lbl">Days</span></div>
+                            <div class="cd-item"><span class="cd-val" id="admin-cd-hours">00</span><span class="cd-lbl">Hours</span></div>
+                            <div class="cd-item"><span class="cd-val" id="admin-cd-minutes">00</span><span class="cd-lbl">Mins</span></div>
+                            <div class="cd-item"><span class="cd-val" id="admin-cd-seconds">00</span><span class="cd-lbl">Secs</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="padding:30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h4 style="font-size: 1.2rem; margin: 0;">Faculty Turnout Tally Analytics</h4>
+                        <button type="button" class="btn-primary" onclick="switchView('reporting')" style="padding: 8px 16px; font-size: 0.85rem;">
+                            <i class='bx bx-file'></i> View Full Report
+                        </button>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:30px;">
+                        <div class="v-bar-chart" id="admin-faculty-chart">
+                            </div>
+                        <div class="analysis-box">
+                            <h5 style="margin-bottom: 15px; font-size: 1rem; color: white;">Live Metric Notes</h5>
+                            <p style="font-size:0.85rem; color:var(--text-gray); line-height: 1.6;">Real-time sync enabled. The chart auto-adjusts gradients based on the live blockchain ledger turnout inputs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-candidates" class="view-section">
+                <div class="admin-toolbar">
+                    <form method="GET" action="/admin-dashboard" style="display:flex; gap:15px; width:100%; align-items: center;">
+                        <input type="hidden" name="active_tab" value="candidates">
+                        <div style="flex-grow: 1; display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 15px;">
+                            <i class='bx bx-search' style="color: var(--text-gray); margin-right: 10px; font-size: 1.2rem;"></i>
+                            <input type="text" name="search" placeholder="Search Candidate..." value="{{ search_query or '' }}" style="background: transparent; border: none; color: white; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+                        </div>
+                        <select name="year" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 10px; outline: none; font-family: 'Poppins', sans-serif;">
+                            <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+                            <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+                            <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
+                        </select>
+                        <select name="faculty" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 10px; outline: none; font-family: 'Poppins', sans-serif; max-width: 220px; text-overflow: ellipsis;">
+                            <option value="">All Faculty</option>
+                            <option value="Faculty of Computer Science and Information Technology" {% if selected_faculty == 'Faculty of Computer Science and Information Technology' %}selected{% endif %}>FSKTM</option>
+                            <option value="Faculty of Electrical and Electronic Engineering" {% if selected_faculty == 'Faculty of Electrical and Electronic Engineering' %}selected{% endif %}>FKEE</option>
+                            <option value="Faculty of Technical and Vocational Education" {% if selected_faculty == 'Faculty of Technical and Vocational Education' %}selected{% endif %}>FPTV</option>
+                            <option value="Faculty of Technology Management and Business" {% if selected_faculty == 'Faculty of Technology Management and Business' %}selected{% endif %}>FPTP</option>
+                            <option value="Faculty of Applied Sciences and Technology" {% if selected_faculty == 'Faculty of Applied Sciences and Technology' %}selected{% endif %}>FAST</option>
+                            <option value="Faculty of Mechanical Engineering" {% if selected_faculty == 'Faculty of Mechanical Engineering' %}selected{% endif %}>FKMP</option>
+                            <option value="Faculty of Civil Engineering" {% if selected_faculty == 'Faculty of Civil Engineering' %}selected{% endif %}>FKAAB</option>
+                        </select>
+                        <button type="submit" class="btn-primary">Search</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Image</th><th>Name</th><th>Matric No</th><th>Faculty</th><th>Manifesto</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for c in candidates %}
+                            <tr>
+                                <td>
+                                    <img src="{{ c.avatar_path }}" 
+                                         style="width:40px; height:50px; object-fit:cover; border-radius:5px; cursor: pointer; border: 1px solid var(--glass-border); transition: 0.2s;" 
+                                         onmouseover="this.style.borderColor='var(--accent-magenta)'; this.style.transform='scale(1.1)';" 
+                                         onmouseout="this.style.borderColor='var(--glass-border)'; this.style.transform='scale(1)';"
+                                         data-name="{{ c.name }}" data-faculty="{{ c.faculty }}" data-manifesto="{{ c.manifesto }}" data-matric="{{ c.matric_no }}" data-status="{{ c.status }}"
+                                         onclick="openCandidateProfile(this)"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ c.name }}&background=d946ef&color=fff'">
+                                </td>
+                                <td style="font-weight: 500;">{{ c.name }}</td>
+                                <td style="color: var(--text-gray); font-family: monospace;">{{ c.matric_no }}</td>
+                                <td style="color: #74b9ff; font-size: 0.85rem;">{{ c.faculty }}</td>
+                                <td><div style="font-style: italic; font-size: 0.85rem; color: var(--text-gray);">"{{ c.manifesto }}"</div></td>
+                                <td><span class="badge {% if c.status == 'Active' %}badge-active{% else %}badge-inactive{% endif %}">{{ c.status }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-gray);">No candidates found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-manage-candidates" class="view-section">
+                <div class="admin-toolbar">
+                    <form method="GET" action="/admin-dashboard" style="display:flex; gap:15px; width:100%; align-items: center; margin-right: 20px;">
+                        <input type="hidden" name="active_tab" value="manage-candidates">
+                        <div style="flex-grow: 1; display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 15px;">
+                            <i class='bx bx-search' style="color: var(--text-gray); margin-right: 10px; font-size: 1.2rem;"></i>
+                            <input type="text" name="search" placeholder="Search Candidate..." value="{{ search_query or '' }}" style="background: transparent; border: none; color: white; width: 100%; outline: none; font-family: 'Poppins', sans-serif;">
+                        </div>
+                        <select name="year" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 10px; outline: none; font-family: 'Poppins', sans-serif;">
+                            <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+                            <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+                            <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
+                        </select>
+                        <select name="faculty" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 10px; outline: none; font-family: 'Poppins', sans-serif; max-width: 220px; text-overflow: ellipsis;">
+                            <option value="">All Faculty</option>
+                            <option value="Faculty of Computer Science and Information Technology" {% if selected_faculty == 'Faculty of Computer Science and Information Technology' %}selected{% endif %}>FSKTM</option>
+                            <option value="Faculty of Electrical and Electronic Engineering" {% if selected_faculty == 'Faculty of Electrical and Electronic Engineering' %}selected{% endif %}>FKEE</option>
+                            <option value="Faculty of Technical and Vocational Education" {% if selected_faculty == 'Faculty of Technical and Vocational Education' %}selected{% endif %}>FPTV</option>
+                            <option value="Faculty of Technology Management and Business" {% if selected_faculty == 'Faculty of Technology Management and Business' %}selected{% endif %}>FPTP</option>
+                            <option value="Faculty of Applied Sciences and Technology" {% if selected_faculty == 'Faculty of Applied Sciences and Technology' %}selected{% endif %}>FAST</option>
+                            <option value="Faculty of Mechanical Engineering" {% if selected_faculty == 'Faculty of Mechanical Engineering' %}selected{% endif %}>FKMP</option>
+                            <option value="Faculty of Civil Engineering" {% if selected_faculty == 'Faculty of Civil Engineering' %}selected{% endif %}>FKAAB</option>
+                        </select>
+                        <button type="submit" class="btn-primary">Search</button>
+                    </form>
+                    <button type="button" class="btn-primary" onclick="openModal('add-candidate-modal')" style="white-space: nowrap;"><i class='bx bx-plus-circle'></i> Add Candidate</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Image</th><th>Name</th><th>Matric</th><th>Faculty</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for c in candidates %}
+                            <tr>
+                                <td>
+                                    <img src="{{ c.avatar_path }}" 
+                                         style="width:40px; height:50px; object-fit:cover; border-radius:5px; cursor: pointer; border: 1px solid var(--glass-border); transition: 0.2s;" 
+                                         onmouseover="this.style.borderColor='var(--accent-magenta)'; this.style.transform='scale(1.1)';" 
+                                         onmouseout="this.style.borderColor='var(--glass-border)'; this.style.transform='scale(1)';"
+                                         data-name="{{ c.name }}" data-faculty="{{ c.faculty }}" data-manifesto="{{ c.manifesto }}" data-matric="{{ c.matric_no }}" data-status="{{ c.status }}"
+                                         onclick="openCandidateProfile(this)"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ c.name }}&background=d946ef&color=fff'">
+                                </td>
+                                <td>{{ c.name }}</td>
+                                <td style="color: var(--text-gray); font-family: monospace;">{{ c.matric_no }}</td>
+                                <td style="color: var(--text-gray); font-size: 0.85rem;">{{ c.faculty }}</td>
+                                <td>
+                                    <form action="/toggle-candidate-status/{{ c.candidate_id }}" method="POST">
+                                        <button type="submit" class="badge {% if c.status == 'Active' %}badge-active{% else %}badge-inactive{% endif %}" style="border:none; cursor:pointer; font-family:'Poppins'; transition:0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">{{ c.status }}</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-gray);">No candidates available.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-session" class="view-section">
+                <div class="admin-toolbar"><h2 style="font-size: 1.5rem; font-weight: 600;">Voting Session Control</h2></div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="table-container" style="padding: 2rem;">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 5px;">Public Election</h3>
+                        <p style="color: var(--text-gray); font-size: 0.85rem; margin-bottom: 20px;">General Representatives Election open to all students.</p>
+                        
+                        <div class="input-group">
+                            <label>Start Date & Time</label>
+                            <input type="datetime-local" id="start-public" required>
+                        </div>
+                        <div class="input-group">
+                            <label>End Date & Time</label>
+                            <input type="datetime-local" id="end-public" required>
+                        </div>
+                        
+                        <button type="button" onclick="requestRelease('public')" id="btn-release-public" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                            <i class='bx bx-envelope'></i> Request OTP to Release
+                        </button>
+                    </div>
+
+                    <div class="table-container" style="padding: 2rem;">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 5px;">Faculty Election</h3>
+                        <p style="color: var(--text-gray); font-size: 0.85rem; margin-bottom: 20px;">Faculty-specific Representatives open to specific faculty students.</p>
+                        
+                        <div class="input-group">
+                            <label>Target Faculty</label>
+                            <select id="faculty-to-release" class="year-select" style="width: 100%;">
+                                <option value="Faculty of Computer Science and Information Technology">Faculty of Computer Science and Information Technology (FSKTM)</option>
+                                <option value="Faculty of Electrical and Electronic Engineering">Faculty of Electrical and Electronic Engineering (FKEE)</option>
+                                <option value="Faculty of Technical and Vocational Education">Faculty of Technical and Vocational Education (FPTV)</option>
+                                <option value="Faculty of Technology Management and Business">Faculty of Technology Management and Business (FPTP)</option>
+                                <option value="Faculty of Applied Sciences and Technology">Faculty of Applied Sciences and Technology (FAST)</option>
+                                <option value="Faculty of Mechanical Engineering">Faculty of Mechanical Engineering (FKMP)</option>
+                                <option value="Faculty of Civil Engineering">Faculty of Civil Engineering (FKAAB)</option>
+                            </select>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="input-group"><label>Start Time</label><input type="datetime-local" id="start-faculty" required></div>
+                            <div class="input-group"><label>End Time</label><input type="datetime-local" id="end-faculty" required></div>
+                        </div>
+
+                        <button type="button" onclick="requestRelease('faculty')" id="btn-release-faculty" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                            <i class='bx bx-envelope'></i> Request OTP to Release
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top:20px; padding:20px;">
+                    <h4>Live Node Session Logs</h4>
+                    <table>
+                        <thead><tr><th>Election ID</th><th>Session Type</th><th>Target Audience Scope</th><th>Start Boundary</th><th>End Boundary</th><th>Status State</th></tr></thead>
+                        <tbody id="session-status-table">
+                            <tr><td colspan="6" style="text-align:center; color:var(--text-gray);">Querying database...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-results" class="view-section">
+                <div class="admin-toolbar">
+                    <form method="GET" action="/admin-dashboard" style="display:flex; gap:15px; width:100%; align-items: center;">
+                        <input type="hidden" name="active_tab" value="results">
+                        <select name="year" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 10px; outline: none; font-family: 'Poppins', sans-serif;">
+                            <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+                            <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+                            <option value="2024" {% if selected_year == '2024' %}selected{% endif %}>2024</option>
+                        </select>
+                        <select name="faculty" style="background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 10px; outline: none; font-family: 'Poppins', sans-serif; max-width: 220px; text-overflow: ellipsis;">
+                            <option value="">All Faculty</option>
+                            <option value="Faculty of Computer Science and Information Technology" {% if selected_faculty == 'Faculty of Computer Science and Information Technology' %}selected{% endif %}>FSKTM</option>
+                            <option value="Faculty of Electrical and Electronic Engineering" {% if selected_faculty == 'Faculty of Electrical and Electronic Engineering' %}selected{% endif %}>FKEE</option>
+                            <option value="Faculty of Technical and Vocational Education" {% if selected_faculty == 'Faculty of Technical and Vocational Education' %}selected{% endif %}>FPTV</option>
+                            <option value="Faculty of Technology Management and Business" {% if selected_faculty == 'Faculty of Technology Management and Business' %}selected{% endif %}>FPTP</option>
+                            <option value="Faculty of Applied Sciences and Technology" {% if selected_faculty == 'Faculty of Applied Sciences and Technology' %}selected{% endif %}>FAST</option>
+                            <option value="Faculty of Mechanical Engineering" {% if selected_faculty == 'Faculty of Mechanical Engineering' %}selected{% endif %}>FKMP</option>
+                            <option value="Faculty of Civil Engineering" {% if selected_faculty == 'Faculty of Civil Engineering' %}selected{% endif %}>FKAAB</option>
+                        </select>
+                        <button type="submit" class="btn-primary">Apply Filters</button>
+                    </form>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px; padding: 10px 0;">
+                    {% for c in candidates %}
+                    <div id="res-row-{{ c.candidate_id }}" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; padding: 20px; align-items: center; gap: 25px; transition: transform 0.3s; order: 999;">
+                        <div id="res-rank-{{ c.candidate_id }}" style="font-size: 1.8rem; font-weight: bold; color: var(--text-gray); width: 50px; text-align: center; font-family: 'JetBrains Mono', monospace;">-</div>
+                        <img src="{{ c.avatar_path }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid var(--glass-border);" onerror="this.src='https://ui-avatars.com/api/?name={{ c.name }}&background=d946ef&color=fff'">
+                        <div style="flex-grow: 1;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <div>
+                                    <h3 style="font-size: 1.2rem; color: white; margin-bottom: 2px;">{{ c.name }}</h3>
+                                    <span style="font-size: 0.75rem; color: #74b9ff; background: rgba(116, 185, 255, 0.1); padding: 4px 10px; border-radius: 10px;">{{ c.faculty }}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span id="res-stats-{{ c.candidate_id }}" style="font-weight: bold; color: var(--accent-magenta); font-size: 1.2rem; font-family: 'JetBrains Mono', monospace;">0% (0 Votes)</span>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-gray); font-style: italic; margin-bottom: 15px;">"{{ c.manifesto }}"</div>
+                            
+                            <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.4); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);">
+                                <div id="res-bar-{{ c.candidate_id }}" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta)); transition: width 0.8s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; color: var(--text-gray); padding: 40px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px;">No candidates match your current filter.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="view-activity" class="view-section">
+                <div class="table-container" style="padding:30px;">
+                    <h3 style="margin-bottom: 20px; font-size: 1.4rem;">Live Activity Log</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 60%;">Activity Description</th>
+                                <th style="width: 20%;">Date</th>
+                                <th style="width: 20%;">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-activity-log-table">
+                            <tr><td colspan="3" style="text-align: center; color: var(--text-gray);">Loading activity parameters...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-reporting" class="view-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px 25px; border-radius: 15px; border: 1px solid var(--glass-border);">
+                    <h2 style="font-size: 1.4rem; font-weight: 600;">System Analytics Compilation Output</h2>
+                    <button type="button" class="btn-primary" onclick="triggerTurnoutAlert()"><i class='bx bx-refresh'></i> Evaluate Low Participation Alerts</button>
+                </div>
+                
+                <div class="table-container" style="padding:40px; text-align:center;">
+                    <form id="report-form" onsubmit="event.preventDefault(); submitAdminReport();">
+                        
+                        <div class="input-group" style="margin-bottom: 20px;">
+                            <label style="color:var(--text-gray); font-size: 1.1rem; margin-bottom: 10px;">Select Report Scope</label>
+                            <select id="report-scope" style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:10px; color:white; font-family:'Poppins'; outline:none;">
+                                <option value="public">Overall Public Election</option>
+                                <option value="Faculty of Computer Science and Information Technology">Faculty of Computer Science & IT (FSKTM)</option>
+                                <option value="Faculty of Electrical and Electronic Engineering">Faculty of Electrical & Electronic Eng. (FKEE)</option>
+                                <option value="Faculty of Technical and Vocational Education">Faculty of Technical & Vocational Edu. (FPTV)</option>
+                                <option value="Faculty of Technology Management and Business">Faculty of Technology Management & Business (FPTP)</option>
+                                <option value="Faculty of Applied Sciences and Technology">Faculty of Applied Sciences & Technology (FAST)</option>
+                                <option value="Faculty of Mechanical Engineering">Faculty of Mechanical Engineering (FKMP)</option>
+                                <option value="Faculty of Civil Engineering">Faculty of Civil Engineering (FKAAB)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group" style="margin-bottom: 20px;">
+                            <label style="color:var(--text-gray); font-size: 1.1rem; margin-bottom: 10px;">Recipient Email (Faculty / Board)</label>
+                            <input type="email" id="target-email" placeholder="dean@uthm.edu.my" required style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:10px; color:white; font-family:'Poppins'; outline:none;">
+                        </div>
+
+                        <div class="input-group" style="margin-bottom: 20px;">
+                            <label style="color:var(--text-gray); font-size: 1.1rem; margin-bottom: 10px;">Report Remarks / Notes</label>
+                            <textarea id="report-remarks" rows="5" placeholder="Enter notes to send to the targeted faculty or board..." required style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:10px; color:white; font-family:'Poppins'; resize: none;"></textarea>
+                        </div>
+                        
+                        <div class="input-group" style="margin-bottom: 25px; text-align: left;">
+                            <label style="color:var(--text-gray); font-size: 1.1rem; margin-bottom: 10px;">Attach Document (PDF/DOC) <span style="font-size:0.8rem;">*Optional</span></label>
+                            <input type="file" id="report-file" accept=".pdf,.doc,.docx" style="background: rgba(0,0,0,0.3); border: 1px dashed var(--accent-magenta); padding: 15px; border-radius: 10px; width: 100%; color: white; cursor: pointer;">
+                        </div>
+
+                        <button type="submit" class="btn-success" id="btn-send-report" style="margin: 0 auto; padding: 12px 25px; background: linear-gradient(90deg, #00b894, #00cec9); border:none; color:white; border-radius:10px; cursor:pointer;"><i class='bx bx-send'></i> Dispatch Official Report via Email</button>
+                    </form>
+                    
+                    <div style="margin-top: 30px; border-top: 1px solid var(--glass-border); padding-top: 30px;">
+                        <p style="color:var(--text-gray); margin-bottom:20px;">Build a verified system performance document to download.</p>
+                        <button type="button" id="btn-pdf-gen" onclick="compileAuditPDF()" class="btn-primary" style="margin: 0 auto; padding: 12px 25px;"><i class='bx bxs-file-pdf'></i> Compile & Download Audit PDF</button>
+                    </div>
+                </div>
+
+                <div style="position: absolute; left: -9999px; top: -9999px; width: 850px;">
+                    <div id="report-render-target" class="pdf-render-area">
+                        <div class="pdf-header-container">
+                            <div class="pdf-header-title">
+                                <h1>ELECTION AUDIT REPORT</h1>
+                                <p id="pdf-dynamic-scope" style="color: #d946ef !important; font-weight: bold; margin-bottom: 5px;">OVERALL PUBLIC ELECTION</p>
+                                <p>UniPoll System - Universiti Tun Hussein Onn Malaysia (UTHM)</p>
+                            </div>
+                            <div class="pdf-meta">
+                                <p><strong>DOCUMENT ID:</strong> AUDIT-2026-X9</p>
+                                <p><strong>TIMESTAMP:</strong> <span id="pdf-gen-time"></span></p>
+                                <p><strong>STATUS:</strong> <span style="color: #00b894; font-weight: bold;">VERIFIED</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="pdf-summary-cards">
+                            <div class="pdf-card">
+                                <h3 id="pdf-reg">0</h3>
+                                <p>Total Registered</p>
+                            </div>
+                            <div class="pdf-card">
+                                <h3 id="pdf-voted">0</h3>
+                                <p>Total Voted</p>
+                            </div>
+                            <div class="pdf-card" style="border-left-color: #00b894 !important;">
+                                <h3 id="pdf-pct" style="color: #00b894 !important;">0%</h3>
+                                <p>Overall Turnout</p>
+                            </div>
+                        </div>
+
+                        <h4 class="pdf-section-title">Official Candidate Rankings</h4>
+                        <table class="pdf-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">Rank</th>
+                                    <th style="width: 45%;">Candidate Name</th>
+                                    <th style="width: 25%;">Faculty</th>
+                                    <th style="width: 20%;">Total Votes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pdf-table-body">
+                                </tbody>
+                        </table>
+                        
+                        <div class="pdf-footer">
+                            <p><strong>Security Notice:</strong> This document contains verified cryptographic hashes from the master ledger node.</p>
+                            <p>Digitally signed by the UniPoll Administrator Consortium.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="otp-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width:400px; text-align:center;">
+            <span class="close-modal" onclick="closeModal('otp-modal')">&times;</span>
+            <i class='bx bx-shield-quarter' style="font-size:3rem; color:var(--accent-magenta); margin-bottom:10px;"></i>
+            <h3>Ledger Authentication</h3>
+            <p style="font-size:0.85rem; color:var(--text-gray); margin:10px 0 20px 0;">Provide the transmission confirmation key forwarded to your designated workspace mail.</p>
+            <input type="hidden" id="pending-type"><input type="hidden" id="pending-scope"><input type="hidden" id="pending-start"><input type="hidden" id="pending-end"><input type="hidden" id="pending-id">
+            <div class="input-group"><input type="text" id="admin-otp-input" style="text-align:center; font-size:1.4rem; letter-spacing:4px; font-weight:bold;"></div>
+            <button type="button" onclick="verifyAndExecuteRelease()" class="btn-primary" style="width:100%; justify-content:center;">Confirm Cryptographic Release</button>
+        </div>
+    </div>
+
+    <div id="add-candidate-modal" class="modal-overlay">
+        <div class="modal-card">
+            <span class="close-modal" onclick="closeModal('add-candidate-modal')">&times;</span>
+            <h3 style="text-align: center; margin-bottom: 25px; font-size: 1.4rem;">Add Candidate</h3>
+            <form action="/add-candidate" method="POST" enctype="multipart/form-data">
+                <div class="input-group"><label>Candidate Image</label><input type="file" name="image" accept="image/*" required></div>
+                <div class="input-group"><label>Candidate Name</label><input type="text" name="name" required></div>
+                <div class="input-group"><label>Matric Number</label><input type="text" name="matric_no" required></div>
+                <div class="input-group"><label>Manifesto</label><textarea name="manifesto" rows="3" required></textarea></div>
+                <div class="input-group">
+                    <label>Faculty</label>
+                    <select name="faculty" required>
+                        <option value="Faculty of Computer Science and Information Technology">FSKTM</option>
+                        <option value="Faculty of Electrical and Electronic Engineering">FKEE</option>
+                        <option value="Faculty of Technical and Vocational Education">FPTV</option>
+                        <option value="Faculty of Technology Management and Business">FPTP</option>
+                        <option value="Faculty of Applied Sciences and Technology">FAST</option>
+                        <option value="Faculty of Mechanical Engineering">FKMP</option>
+                        <option value="Faculty of Civil Engineering">FKAAB</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:10px;">Save Candidate</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="candidate-profile-modal" class="modal-overlay" onclick="if(event.target==this) closeModal('candidate-profile-modal')">
+        <div class="modal-card" style="max-width: 400px; padding: 2.5rem 1.5rem; text-align: center;">
+            <span class="close-modal" onclick="closeModal('candidate-profile-modal')">&times;</span>
+            <div id="modal-profile-status" style="position: absolute; top: 1.5rem; left: 1.5rem; background: rgba(128,128,128,0.1); border: 1px solid var(--glass-border); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.75rem;">STATUS</div>
+            <img src="" id="modal-profile-img" style="width: 130px; height: 160px; border-radius: 12px; object-fit: cover; border: 3px solid #ffd700; margin: 0 auto 15px auto; display: block;">
+            <h3 id="modal-profile-name" style="font-size: 1.3rem; font-weight: 700; margin-bottom: 5px;">Name</h3>
+            <div id="modal-profile-faculty" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); padding: 6px 15px; border-radius: 20px; display: inline-block; font-size: 0.75rem; margin-bottom: 20px; line-height: 1.4; max-width: 90%;">Faculty</div>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border-left: 3px solid var(--primary-purple); margin-bottom: 20px;">
+                <p id="modal-profile-manifesto" style="font-style: italic; font-size: 0.85rem; color: var(--text-gray);">"Manifesto"</p>
+            </div>
+            <div style="background: rgba(217, 70, 239, 0.1); border: 1px solid rgba(217, 70, 239, 0.3); padding: 15px; border-radius: 12px;">
+                <span style="display: block; font-size: 0.75rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-gray);">Matric Number</span>
+                <span id="modal-profile-matric" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-magenta); font-family: monospace;">Matric</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchActivityLogs();
+            fetchDatabaseSessions();
+            fetchAdminStats();
+            setInterval(fetchActivityLogs, 5000); 
+            setInterval(fetchAdminStats, 2000); 
+        });
+
+        // Store latest stats globally for the PDF Generator
+        window.latestElectionStats = null;
+
+        // --- DASHBOARD AND RESULTS SYNC ---
+        function fetchAdminStats() {
+            fetch('/api/dashboard-stats').then(r=>r.json()).then(data => {
+                window.latestElectionStats = data; 
+                
+                document.getElementById('admin-total-reg').innerText = data.total_registered.toLocaleString();
+                document.getElementById('admin-total-voted').innerText = data.total_voted.toLocaleString();
+                
+                const chart = document.getElementById('admin-faculty-chart');
+                if(chart) {
+                    chart.innerHTML = "";
+                    const acronyms = {
+                        "Faculty of Computer Science and Information Technology": "FSKTM",
+                        "Faculty of Electrical and Electronic Engineering": "FKEE",
+                        "Faculty of Technical and Vocational Education": "FPTV",
+                        "Faculty of Technology Management and Business": "FPTP",
+                        "Faculty of Applied Sciences and Technology": "FAST",
+                        "Faculty of Mechanical Engineering": "FKMP",
+                        "Faculty of Civil Engineering": "FKAAB"
+                    };
+                    
+                    data.faculty_stats.forEach((f, idx) => {
+                        const shortName = acronyms[f.faculty] || "FAC";
+                        let highlightIcon = idx === 0 && f.turnout_pct > 0 ? `<div style="margin-bottom: 5px; color: gold; font-size: 1.2rem;"><i class='bx bxs-trophy'></i></div>` : "";
+                        let colorStyle = idx === 0 && f.turnout_pct > 0 ? `background: linear-gradient(0deg, #ffd700, #ffb142);` : (idx === data.faculty_stats.length - 1 && data.faculty_stats.length > 1 ? `background: var(--danger);` : ``);
+                        let textStyle = idx === 0 && f.turnout_pct > 0 ? `color: #ffd700; font-weight: bold;` : (idx === data.faculty_stats.length - 1 && data.faculty_stats.length > 1 ? `color:var(--danger);` : ``);
+                        
+                        chart.innerHTML += `
+                            <div class="v-bar-col">
+                                ${highlightIcon}
+                                <div class="v-bar-wrap"><div class="v-bar-fill" style="height: ${f.turnout_pct}%; ${colorStyle}"></div></div>
+                                <span class="v-bar-lbl" style="${textStyle}">${shortName}</span>
+                            </div>`;
+                    });
+                }
+
+                const status = data.election_status;
+                
+                document.querySelectorAll('[id^="res-stats-"]').forEach(el => {
+                    if(status === 'Pending') el.innerText = "Awaiting Release";
+                    else el.innerText = "0% (0 Votes)";
+                });
+                document.querySelectorAll('[id^="res-bar-"]').forEach(el => { el.style.width = "0%"; el.style.background = "linear-gradient(90deg, var(--primary-purple), var(--accent-magenta))"; });
+                document.querySelectorAll('[id^="res-rank-"]').forEach(el => { el.innerText = "-"; el.style.color = "var(--text-gray)"; });
+
+                if(status !== 'Pending') {
+                    let rankCounter = 1;
+                    data.candidate_stats.forEach(c => {
+                        const rowEl = document.getElementById(`res-row-${c.candidate_id}`);
+                        const statEl = document.getElementById(`res-stats-${c.candidate_id}`);
+                        const barEl = document.getElementById(`res-bar-${c.candidate_id}`);
+                        const rankEl = document.getElementById(`res-rank-${c.candidate_id}`);
+
+                        if(rowEl && statEl && barEl && rankEl) {
+                            rowEl.style.order = rankCounter;
+                            
+                            statEl.innerText = `${c.vote_pct}% (${c.vote_count.toLocaleString()} Votes)`;
+                            barEl.style.width = `${c.vote_pct}%`;
+                            rankEl.innerText = rankCounter;
+                            
+                            if(rankCounter === 1 && c.vote_count > 0) {
+                                rankEl.innerHTML = "<i class='bx bxs-crown'></i>";
+                                rankEl.style.color = "#ffd700";
+                                barEl.style.background = "linear-gradient(90deg, #ffd700, #ffb142)";
+                            } else if(rankCounter === 2 && c.vote_count > 0) {
+                                rankEl.style.color = "#c0c0c0";
+                            } else if(rankCounter === 3 && c.vote_count > 0) {
+                                rankEl.style.color = "#cd7f32";
+                            }
+                        }
+                        rankCounter++;
+                    });
+                }
+            });
+        }
+
+        function openCandidateProfile(element) {
+            const name = element.getAttribute('data-name');
+            const faculty = element.getAttribute('data-faculty');
+            const manifesto = element.getAttribute('data-manifesto');
+            const matric = element.getAttribute('data-matric');
+            const status = element.getAttribute('data-status');
+            
+            document.getElementById('modal-profile-name').innerText = name;
+            document.getElementById('modal-profile-img').src = element.src;
+            document.getElementById('modal-profile-faculty').innerText = faculty;
+            document.getElementById('modal-profile-manifesto').innerText = `"${manifesto}"`;
+            document.getElementById('modal-profile-matric').innerText = matric;
+            
+            const badge = document.getElementById('modal-profile-status');
+            badge.innerText = status.toUpperCase();
+            if (status === 'Active') { badge.style.color = 'var(--success)'; badge.style.borderColor = 'var(--success)'; } 
+            else { badge.style.color = 'var(--danger)'; badge.style.borderColor = 'var(--danger)'; }
+            
+            openModal('candidate-profile-modal');
+        }
+
+        function triggerTurnoutAlert() {
+            alert("Reminder Broadcast Sent! All students in pending/active faculty elections have been notified.");
+        }
+        
+        // --- TRANSMIT REPORT WITH FILE & EMAIL ---
+        function submitAdminReport() {
+            const scope = document.getElementById('report-scope').value;
+            const targetEmail = document.getElementById('target-email').value;
+            const remarks = document.getElementById('report-remarks').value;
+            const fileInput = document.getElementById('report-file');
+            const btn = document.getElementById('btn-send-report');
+            
+            let formData = new FormData();
+            formData.append('scope', scope); 
+            formData.append('target_email', targetEmail);
+            formData.append('remarks', remarks);
+            if (fileInput.files.length > 0) { formData.append('report_file', fileInput.files[0]); }
+            
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Transmitting...";
+            btn.disabled = true;
+
+            fetch('/api/submit-report', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerHTML = "<i class='bx bx-send'></i> Dispatch Official Report via Email";
+                btn.disabled = false;
+                if(data.success) {
+                    alert("Report and attachments successfully dispatched to the target email.");
+                    document.getElementById('report-form').reset(); 
+                } else { alert("Failed to send report."); }
+            }).catch(err => {
+                btn.innerHTML = "<i class='bx bx-send'></i> Dispatch Official Report via Email";
+                btn.disabled = false;
+                alert("Network error.");
+            });
+        }
+
+        // --- DYNAMIC PDF GENERATOR BASED ON CANDIDATE RANKINGS ---
+        function compileAuditPDF() {
+            if(!window.latestElectionStats) return alert("Awaiting live data sync. Please try again in a few seconds.");
+
+            const btn = document.getElementById('btn-pdf-gen');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Compiling Document...";
+            btn.disabled = true;
+
+            const scopeVal = document.getElementById('report-scope').value;
+            const scopeText = document.getElementById('report-scope').options[document.getElementById('report-scope').selectedIndex].text;
+            const stats = window.latestElectionStats;
+
+            document.getElementById('pdf-dynamic-scope').innerText = scopeText.toUpperCase();
+            document.getElementById('pdf-gen-time').innerText = new Date().toLocaleString();
+
+            let reg = 0, voted = 0, pct = 0;
+            let tbodyHtml = "";
+
+            if(scopeVal === 'public') {
+                reg = stats.total_registered;
+                voted = stats.total_voted;
+                pct = stats.turnout_pct;
+
+                let rank = 1;
+                stats.candidate_stats.forEach(c => {
+                    tbodyHtml += `<tr><td>#${rank}</td><td>${c.name}</td><td>${c.faculty}</td><td style="font-weight:bold;">${c.vote_count.toLocaleString()}</td></tr>`;
+                    rank++;
+                });
+            } else {
+                const facData = stats.faculty_stats.find(f => f.faculty === scopeVal);
+                if(facData) {
+                    reg = facData.registered;
+                    voted = facData.voted;
+                    pct = facData.turnout_pct;
+                }
+                
+                const facCandidates = stats.candidate_stats.filter(c => c.faculty === scopeVal);
+                if(facCandidates.length > 0) {
+                    let rank = 1;
+                    facCandidates.forEach(c => {
+                        tbodyHtml += `<tr><td>#${rank}</td><td>${c.name}</td><td>${c.faculty}</td><td style="font-weight:bold;">${c.vote_count.toLocaleString()}</td></tr>`;
+                        rank++;
+                    });
+                } else {
+                    tbodyHtml += `<tr><td colspan="4" style="text-align:center;">No candidate data available for this faculty.</td></tr>`;
+                }
+            }
+
+            document.getElementById('pdf-reg').innerText = reg.toLocaleString();
+            document.getElementById('pdf-voted').innerText = voted.toLocaleString();
+            document.getElementById('pdf-pct').innerText = pct + "%";
+            document.getElementById('pdf-table-body').innerHTML = tbodyHtml;
+            
+            const element = document.getElementById('report-render-target');
+            const options = {
+                margin:       [0.5, 0, 0.5, 0],
+                filename:     `Audit_Report_${scopeVal === 'public' ? 'Overall' : 'Faculty'}.pdf`,
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false }, 
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(options).from(element).save().then(() => {
+                btn.innerHTML = originalText; btn.disabled = false;
+                alert("Corporate PDF Generated and downloaded successfully.");
+            }).catch(err => {
+                console.error(err);
+                btn.innerHTML = originalText; btn.disabled = false;
+                alert("Error compiling PDF. Check console.");
+            });
+        }
+
+        // --- SESSION REQUEST LOGIC ---
+        window.requestRelease = function(type) {
+            const start = document.getElementById(`start-${type}`).value;
+            const end = document.getElementById(`end-${type}`).value;
+            if(!start || !end) return alert("Declare time boundaries before publishing parameters.");
+            
+            const btn = document.getElementById(`btn-release-${type}`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Sending..."; btn.disabled = true;
+
+            fetch('/send-admin-release-otp', { method: 'POST' })
+            .then(res => res.json()).then(data => {
+                btn.innerHTML = originalText; btn.disabled = false;
+                if(data.success) {
+                    document.getElementById('pending-type').value = type;
+                    document.getElementById('pending-start').value = start;
+                    document.getElementById('pending-end').value = end;
+                    document.getElementById('pending-scope').value = (type==='public') ? "All Students" : document.getElementById('faculty-to-release').value;
+                    document.getElementById('admin-otp-input').value = "";
+                    openModal('otp-modal');
+                } else { alert("Failed to clear encryption layer. Error: " + data.message); }
+            }).catch(() => {
+                btn.innerHTML = originalText; btn.disabled = false;
+                alert("Server Connection Error.");
+            });
+        };
+
+        window.verifyAndExecuteRelease = function() {
+            const otp = document.getElementById('admin-otp-input').value;
+            const type = document.getElementById('pending-type').value;
+            const start = document.getElementById('pending-start').value;
+            const end = document.getElementById('pending-end').value;
+            const scope = document.getElementById('pending-scope').value;
+
+            if(!otp) return alert("Please enter the OTP.");
+
+            fetch('/api/db-release-session', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ otp: otp, type: type, start: start, end: end, scope: scope })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    fetchDatabaseSessions(); 
+                    closeModal('otp-modal');
+                    alert(`Success! Session ID: ${data.generated_id} released.`);
+                } else { alert("Handshake verification rejected: " + data.message); }
+            }).catch(() => { alert("Server Error during verification."); });
+        };
+
+        function determineStatus(startTs, endTs, now, dbStatus) {
+            if (dbStatus === 'Paused') return "<span class='badge badge-inactive' style='background:rgba(231,76,60,0.15); color:#e74c3c;'>PAUSED BY SUPERADMIN</span>";
+            if (now < startTs) return "<span class='badge badge-pending'>Pending</span>";
+            if (now >= startTs && now <= endTs) return "<span class='badge badge-active'>Live</span>";
+            return "<span class='badge badge-inactive'>Ended</span>";
+        }
+
+        function fetchDatabaseSessions() {
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const tbody = document.getElementById('session-status-table');
+                if(!tbody) return; 
+                tbody.innerHTML = "";
+                const now = new Date().getTime();
+
+                let hasData = false;
+                if(settings.public_election_id) {
+                    hasData = true;
+                    // FIX: Uses public_end_time
+                    const status = determineStatus(new Date(settings.public_start_time).getTime(), new Date(settings.public_end_time).getTime(), now, settings.public_election_status);
+                    tbody.innerHTML += `<tr>
+                        <td style="color:var(--accent-magenta); font-weight:bold; font-family:monospace;">${settings.public_election_id}</td>
+                        <td>Public Election</td><td>All Students</td>
+                        <td>${new Date(settings.public_start_time).toLocaleString()}</td><td>${new Date(settings.public_end_time).toLocaleString()}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                }
+
+                if(settings.faculty_election_id) {
+                    hasData = true;
+                    // FIX: Uses faculty_end_time
+                    const status = determineStatus(new Date(settings.faculty_start_time).getTime(), new Date(settings.faculty_end_time).getTime(), now, settings.faculty_election_status);
+                    tbody.innerHTML += `<tr>
+                        <td style="color:var(--accent-magenta); font-weight:bold; font-family:monospace;">${settings.faculty_election_id}</td>
+                        <td>Faculty Election</td><td>${settings.target_faculty}</td>
+                        <td>${new Date(settings.faculty_start_time).toLocaleString()}</td><td>${new Date(settings.faculty_end_time).toLocaleString()}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                }
+                
+                if(!hasData) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-gray);">No active database sessions.</td></tr>`;
+            });
+        }
+
+        // --- GLOBAL CLOCK & REAL-TIME SYNC ---
+        setInterval(() => {
+            const nowStr = new Date();
+            document.getElementById('clock').innerText = nowStr.toLocaleTimeString();
+            
+            const dateEl = document.getElementById('date');
+            if (dateEl) {
+                dateEl.innerText = nowStr.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+            }
+
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const now = new Date().getTime();
+                let distance = 0;
+                let isPublicConfigured = false;
+
+                if (settings.public_election_status === 'Live' && settings.public_start_time) {
+                    isPublicConfigured = true;
+                    const startTs = new Date(settings.public_start_time).getTime();
+                    // FIX: Targets public_end_time
+                    const endTs = new Date(settings.public_end_time).getTime();
+
+                    if (now < startTs) {
+                        document.getElementById("admin-timer-label").innerText = "Public Election Starts In";
+                        distance = startTs - now;
+                    } else if (now >= startTs && now <= endTs) {
+                        document.getElementById("admin-timer-label").innerText = "Public Election Ends In (Live)";
+                        distance = endTs - now;
+                    } else {
+                        document.getElementById("admin-timer-label").innerText = "Public Election Ended";
+                        distance = 0;
+                    }
+                } else if (settings.public_election_status === 'Paused') {
+                    document.getElementById("admin-timer-label").innerText = "Election Paused by Superadmin";
+                    distance = 0;
+                } else {
+                    document.getElementById("admin-timer-label").innerText = "No Public Election Scheduled";
+                }
+
+                if (distance > 0 && isPublicConfigured) {
+                    document.getElementById("admin-cd-days").innerText = Math.floor(distance / 86400000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-hours").innerText = Math.floor((distance % 86400000) / 3600000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-minutes").innerText = Math.floor((distance % 3600000) / 60000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-seconds").innerText = Math.floor((distance % 60000) / 1000).toString().padStart(2, '0');
+                } else {
+                    document.getElementById("admin-cd-days").innerText = "00"; document.getElementById("admin-cd-hours").innerText = "00";
+                    document.getElementById("admin-cd-minutes").innerText = "00"; document.getElementById("admin-cd-seconds").innerText = "00";
+                }
+            });
+            fetchDatabaseSessions();
+        }, 1000);
+
+        function fetchActivityLogs() {
+            fetch('/api/get-activity-logs')
+                .then(res => res.json())
+                .then(logs => {
+                    const tbody = document.getElementById('admin-activity-log-table');
+                    if(!tbody) return;
+                    tbody.innerHTML = "";
+                    if (logs.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:var(--text-gray);'>No recent activity.</td></tr>";
+                        return;
+                    }
+                    logs.forEach(log => {
+                        let datePart = ""; let timePart = "";
+                        if (log.created_at) {
+                            let parts = log.created_at.split(' ');
+                            datePart = parts[0];
+                            if (parts.length > 1) { timePart = parts.slice(1).join(' '); }
+                        }
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="color:var(--text-white);"><i class='bx bx-broadcast' style="color:var(--accent-magenta); margin-right:8px;"></i>${log.description}</td>
+                                <td style="color:var(--text-gray); font-size: 0.85rem;">${datePart}</td>
+                                <td style="color:var(--text-gray); font-size: 0.85rem; font-family:monospace;">${timePart}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Error fetching logs:", err));
+        }
+
+        setInterval(() => {
+            const nowStr = new Date();
+            const clockEl = document.getElementById('clock');
+            const dateEl = document.getElementById('date');
+            if(clockEl) clockEl.innerText = nowStr.toLocaleTimeString();
+            if(dateEl) dateEl.innerText = nowStr.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const now = new Date().getTime();
+                let distance = 0;
+                let isPublicConfigured = false;
+                const timerLabel = document.getElementById("admin-timer-label");
+
+                if (settings.public_election_status === 'Live' && settings.public_start_time) {
+                    isPublicConfigured = true;
+                    const startTs = new Date(settings.public_start_time).getTime();
+                    const endTs = new Date(settings.election_end_time).getTime();
+
+                    if (now < startTs) {
+                        if(timerLabel) timerLabel.innerText = "Public Election Starts In";
+                        distance = startTs - now;
+                    } else if (now >= startTs && now <= endTs) {
+                        if(timerLabel) timerLabel.innerText = "Public Election Ends In (Live)";
+                        distance = endTs - now;
+                    } else {
+                        if(timerLabel) timerLabel.innerText = "Public Election Ended";
+                        distance = 0;
+                    }
+                } else if (settings.public_election_status === 'Paused') {
+                    if(timerLabel) timerLabel.innerText = "Election Paused by Superadmin";
+                    distance = 0;
+                } else {
+                    if(timerLabel) timerLabel.innerText = "No Public Election Scheduled";
+                }
+
+                if (distance > 0 && isPublicConfigured) {
+                    document.getElementById("admin-cd-days").innerText = Math.floor(distance / 86400000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-hours").innerText = Math.floor((distance % 86400000) / 3600000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-minutes").innerText = Math.floor((distance % 3600000) / 60000).toString().padStart(2, '0');
+                    document.getElementById("admin-cd-seconds").innerText = Math.floor((distance % 60000) / 1000).toString().padStart(2, '0');
+                } else {
+                    const dEl = document.getElementById("admin-cd-days");
+                    if(dEl) {
+                        dEl.innerText = "00"; 
+                        document.getElementById("admin-cd-hours").innerText = "00";
+                        document.getElementById("admin-cd-minutes").innerText = "00"; 
+                        document.getElementById("admin-cd-seconds").innerText = "00";
+                    }
+                }
+            });
+            fetchDatabaseSessions();
+        }, 5000);
+
+        function switchView(viewName) {
+            localStorage.setItem("adminActiveTab", viewName);
+            const views = document.querySelectorAll('.view-section');
+            for (let i = 0; i < views.length; i++) views[i].classList.remove('active-view');
+            const links = document.querySelectorAll('.nav-links a');
+            for (let i = 0; i < links.length; i++) links[i].classList.remove('active');
+            
+            const targetView = document.getElementById('view-' + viewName);
+            if(targetView) targetView.classList.add('active-view');
+            const targetLink = document.getElementById('nav-' + viewName);
+            if(targetLink) targetLink.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let tabToOpen = urlParams.get('active_tab');
+            if (!tabToOpen) { tabToOpen = localStorage.getItem("adminActiveTab") || "dashboard"; }
+            switchView(tabToOpen);
+        });
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    </script>
+</body>
+</html>

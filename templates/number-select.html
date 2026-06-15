@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Identity | UTHM E-Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --accent-magenta: #d946ef;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Complete Mobile Tap & Selection Prevention (Nuke It Fix) */
+        * {
+            -webkit-touch-callout: none; /* Completely disables the iOS popup menu */
+            -webkit-user-select: none;   /* Safari */
+            -khtml-user-select: none;    /* Konqueror HTML */
+            -moz-user-select: none;      /* Firefox */
+            -ms-user-select: none;       /* IE10+ */
+            user-select: none;           /* Standard */
+            -webkit-tap-highlight-color: transparent; /* Removes the grey/blue tap flash */
+        }
+        
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 1.5rem; }
+        .select-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }
+        h2 { font-size: 1.6rem; margin-bottom: 10px; }
+        p { color: #b3b3b3; font-size: 0.9rem; margin-bottom: 2rem; }
+        .choice-container { display: flex; flex-direction: column; gap: 15px; }
+        
+        .choice-btn { 
+            background: rgba(255,255,255,0.08); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 12px; 
+            color: white; 
+            padding: 18px; 
+            font-size: 1.5rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            text-decoration: none; 
+            display: block; 
+            /* Enforce selection prevention explicitly on links */
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
+        
+        .choice-btn:hover, .choice-btn:active { 
+            background: var(--accent-magenta); 
+            border-color: var(--accent-magenta); 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); 
+        }
+    </style>
+</head>
+<body>
+    <div class="select-card">
+        <h2>Are you trying to sign in?</h2>
+        <p>Select the exact number matching the target shown on your login application terminal.</p>
+        
+        <div class="choice-container">
+            {% for choice in choices %}
+                <a href="/process-selection/{{ token }}/{{ choice }}" class="choice-btn">{{ choice }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

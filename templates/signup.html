@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | UTHM E-Voting</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary-purple: #9d50bb;
+            --accent-magenta: #d946ef;
+            --text-white: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #00b894;
+            --danger: #ff7675;
+            --text-gray: #b3b3b3;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-white);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 2rem 5%;
+        }
+
+        .blob-bg {
+            position: fixed; width: 600px; height: 600px;
+            background: linear-gradient(180deg, #6a11cb 0%, #d946ef 100%);
+            border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+            filter: blur(80px); z-index: -1; opacity: 0.3;
+            animation: morph 10s ease-in-out infinite;
+        }
+
+        @keyframes morph {
+            0%, 100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+            50% { border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%; }
+        }
+
+        .signup-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .header { text-align: center; margin-bottom: 2.5rem; }
+        .header h2 { font-size: 1.8rem; font-weight: 700; color: #ffffff; margin-bottom: 5px;}
+        .header p { color: #ffffff; font-size: 0.9rem; } 
+
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: #ffffff; font-weight: 500; letter-spacing: 0.5px; }
+        .input-wrapper, .password-wrapper { position: relative; width: 100%; }
+
+        .input-group input {
+            width: 100%; padding: 14px 15px 14px 45px; background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border); border-radius: 8px; color: #ffffff;
+            font-family: 'Poppins', sans-serif; outline: none; transition: 0.3s; font-size: 0.9rem;
+        }
+        .input-group input:focus { border-color: var(--accent-magenta); background: rgba(255,255,255,0.1); }
+        .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #ffffff; font-size: 1.3rem; pointer-events: none; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ffffff; font-size: 1.3rem; }
+
+        .security-checklist { background: rgba(15, 12, 41, 0.6); border: 1px solid var(--glass-border); border-radius: 10px; padding: 15px; margin-top: 15px; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .security-checklist li { font-size: 0.8rem; color: #ffffff; display: flex; align-items: flex-start; line-height: 1.4; }
+        .security-checklist li i { font-size: 1.1rem; color: #ffffff; margin-right: 10px; flex-shrink: 0; margin-top: 1px; }
+        .security-checklist li.valid { color: var(--success); }
+        .security-checklist li.valid i { color: var(--success); }
+
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta));
+            border: none; border-radius: 8px; color: #ffffff; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: all 0.3s ease; margin-top: 15px;
+        }
+        .btn-submit:disabled { background: rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.4); cursor: not-allowed; }
+        .form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #ffffff; }
+        .form-footer a { color: var(--accent-magenta); text-decoration: none; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="blob-bg"></div>
+    <div class="signup-card">
+        <div class="header">
+            <h2>Create Account</h2>
+            <p>Register securely for the E-Voting Portal</p>
+        </div>
+
+        <form id="signup-form" action="/register" method="POST">
+            <div class="input-group">
+                <label>Matric Number</label>
+                <div class="input-wrapper">
+                    <i class='bx bx-id-card input-icon'></i>
+                    <input type="text" id="matric" name="matric" placeholder="e.g. AI230166" required>
+                </div>
+                <p id="duplicate-error" style="color: var(--danger); font-size: 0.8rem; margin-top: 6px; font-weight: 500; display: none;">Matric Number already registered!</p>
+            </div>
+
+            <div class="input-group">
+                <label>Secure Password</label>
+                <div class="password-wrapper">
+                    <i class='bx bx-lock-alt input-icon'></i>
+                    <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+                    <i class='bx bx-show toggle-password' onclick="toggleView('password', this)"></i>
+                </div>
+                
+                <ul class="security-checklist">
+                    <li id="rule-length"><i class='bx bx-circle'></i><span>At least 8 and at most 50 characters in length</span></li>
+                    <li id="rule-lower"><i class='bx bx-circle'></i><span>At least one lower-case letter (a-z)</span></li>
+                    <li id="rule-upper"><i class='bx bx-circle'></i><span>At least one upper-case letter (A-Z)</span></li>
+                    <li id="rule-digit"><i class='bx bx-circle'></i><span>At least one digit (0-9)</span></li>
+                    <li id="rule-symbol"><i class='bx bx-circle'></i><span>At least one special character (@, #, $)</span></li>
+                </ul>
+            </div>
+
+            <div class="input-group">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                    <i class='bx bx-lock-alt input-icon'></i>
+                    <input type="password" id="confirm-password" placeholder="Repeat your password" required>
+                    <i class='bx bx-show toggle-password' onclick="toggleView('confirm-password', this)"></i>
+                </div>
+                <p id="match-error" style="color: var(--danger); font-size: 0.8rem; margin-top: 5px; display: none;">Passwords do not match.</p>
+            </div>
+            
+            <button type="submit" class="btn-submit" id="btn-register" disabled>Register Account</button>
+            <div class="form-footer">
+                Already registered? <a href="/">Log In Here</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const matricInput = document.getElementById('matric');
+        const pwdInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirm-password');
+        const btnRegister = document.getElementById('btn-register');
+        const matchError = document.getElementById('match-error');
+        const duplicateError = document.getElementById('duplicate-error');
+
+        let isMatricDuplicate = false;
+
+        matricInput.addEventListener('input', () => {
+            const matricValue = matricInput.value.trim();
+            if (matricValue.length >= 4) {
+                // Background check against python backend database
+                fetch('/check-duplicate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matric: matricValue })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.registered) {
+                        isMatricDuplicate = true;
+                        duplicateError.style.display = 'block';
+                    } else {
+                        isMatricDuplicate = false;
+                        duplicateError.style.display = 'none';
+                    }
+                    validateSecurity(); // Re-evaluate button lock state
+                });
+            } else {
+                isMatricDuplicate = false;
+                duplicateError.style.display = 'none';
+                validateSecurity();
+            }
+        });
+
+        pwdInput.addEventListener('input', validateSecurity);
+        confirmInput.addEventListener('input', validateSecurity);
+
+        function validateSecurity() {
+            const pwd = pwdInput.value;
+            let allValid = true;
+
+            const isLengthValid = pwd.length >= 8 && pwd.length <= 50;
+            updateRuleUI('rule-length', isLengthValid);
+            if(!isLengthValid) allValid = false;
+
+            const isLowerValid = /[a-z]/.test(pwd);
+            updateRuleUI('rule-lower', isLowerValid);
+            if(!isLowerValid) allValid = false;
+
+            const isUpperValid = /[A-Z]/.test(pwd);
+            updateRuleUI('rule-upper', isUpperValid);
+            if(!isUpperValid) allValid = false;
+
+            const isDigitValid = /\d/.test(pwd);
+            updateRuleUI('rule-digit', isDigitValid);
+            if(!isDigitValid) allValid = false;
+
+            const symbols = pwd.match(/[^a-zA-Z0-9]/g);
+            const isSymbolValid = symbols !== null && symbols.length >= 1;
+            updateRuleUI('rule-symbol', isSymbolValid);
+            if(!isSymbolValid) allValid = false;
+
+            let isMatch = pwd.length > 0 && pwd === confirmInput.value;
+            matchError.style.display = (confirmInput.value.length > 0 && !isMatch) ? 'block' : 'none';
+            if(!isMatch || confirmInput.value === "") allValid = false;
+
+            // CRITICAL: Button remains locked if inputs are invalid OR Matric is already registered
+            if (isMatricDuplicate) {
+                btnRegister.disabled = true;
+            } else {
+                btnRegister.disabled = !allValid;
+            }
+        }
+
+        function updateRuleUI(elementId, isValid) {
+            const el = document.getElementById(elementId);
+            const icon = el.querySelector('i');
+            if (isValid) {
+                el.classList.add('valid');
+                icon.className = 'bx bxs-check-circle';
+            } else {
+                el.classList.remove('valid');
+                icon.className = 'bx bx-circle';
+            }
+        }
+
+        function toggleView(id, icon) {
+            const input = document.getElementById(id);
+            if (input.type === "password") { 
+                input.type = "text"; 
+                icon.classList.replace('bx-show', 'bx-hide'); 
+            } else { 
+                input.type = "password"; 
+                icon.classList.replace('bx-hide', 'bx-show'); 
+            }
+        }
+
+    // Enhanced listener to handle structural lookups safely
+matricInput.addEventListener('input', () => {
+    const matricValue = matricInput.value.trim().toUpperCase();
+    if (matricValue.length >= 4) {
+        fetch('/check-duplicate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matric: matricValue })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.registered) {
+                isMatricDuplicate = true;
+                duplicateError.style.display = 'block';
+                duplicateError.innerText = "This Matric Number is already registered!";
+            } else {
+                isMatricDuplicate = false;
+                duplicateError.style.display = 'none';
+            }
+            validateSecurity(); // Recalculate submit button disabled state
+        });
+    } else {
+        isMatricDuplicate = false;
+        duplicateError.style.display = 'none';
+        validateSecurity();
+    }
+});
+    </script>
+</body>
+</html>

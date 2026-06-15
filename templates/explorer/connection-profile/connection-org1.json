@@ -1,0 +1,56 @@
+{
+  "name": "test-network-org1",
+  "version": "1.0.0",
+  "client": {
+    "tlsEnable": true,
+    "adminCredential": {
+      "id": "exploreradmin",
+      "password": "exploreradminpw"
+    },
+    "enableAuthentication": true,
+    "organization": "Org1MSP",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    },
+    "credentialStore": {
+      "path": "/tmp/crypto/wallet",
+      "cryptoStore": {
+        "path": "/tmp/crypto/wallet"
+      }
+    }
+  },
+  "channels": {
+    "mychannel": {
+      "peers": {
+        "peer0.org1.example.com": {}
+      }
+    }
+  },
+  "organizations": {
+    "Org1MSP": {
+      "mspid": "Org1MSP",
+      "fullpath": true,
+      "adminPrivateKey": {
+        "path": "/opt/explorer/app/platform/fabric/connection-profile/org1.example.com/users/Admin@org1.example.com/msp/keystore/priv_sk"
+      },
+      "signedCert": {
+        "path": "/opt/explorer/app/platform/fabric/connection-profile/org1.example.com/users/Admin@org1.example.com/msp/signcerts/cert.pem"
+      }
+    }
+  },
+  "peers": {
+    "peer0.org1.example.com": {
+      "tlsCACerts": {
+        "path": "/opt/explorer/app/platform/fabric/connection-profile/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+      },
+      "url": "grpcs://peer0.org1.example.com:7051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.org1.example.com"
+      }
+    }
+  }
+}

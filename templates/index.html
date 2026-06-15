@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTHM MPP E-Voting | Home</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        :root {
+            --bg-dark: #0f0c29; --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary-purple: #9d50bb; --accent-magenta: #d946ef; --text-white: #ffffff; --text-gray: #b3b3b3;
+            --btn-color: #8a2be2; --card-bg: rgba(255, 255, 255, 0.05); --card-border: rgba(255, 255, 255, 0.1);
+            --modal-bg: #1a1a2e; --danger: #ff7675; --success: #00b894;
+        }
+        body.light-mode {
+            --bg-dark: #f0f2f5; --bg-gradient: linear-gradient(135deg, #f0f2f5 0%, #e0eafc 100%);
+            --text-white: #111111; --text-gray: #555555; --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.1); --modal-bg: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: var(--text-white); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; transition: background 0.4s ease, color 0.4s ease; }
+        
+        body.light-mode .hero-content h1, body.light-mode .section-header h2 { background: linear-gradient(#111, #555); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        body.light-mode .candidate-manifesto { background: rgba(0, 0, 0, 0.05); color: #333; }
+        body.light-mode .filter-btn { color: #333; background: rgba(255,255,255,0.9); }
+        body.light-mode .filter-btn.active { color: white; background: var(--accent-magenta); }
+        body.light-mode .result-row:hover { background: rgba(217, 70, 239, 0.1); }
+        body.light-mode .input-group input { background: rgba(0,0,0,0.05); color: #111; border-color: rgba(0,0,0,0.2); }
+        body.light-mode .modal-card { background: #fff; color: #111; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 5%; z-index: 10; }
+        .logo { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; color: var(--text-white); text-decoration: none; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-gray); text-decoration: none; transition: color 0.3s; cursor: pointer; font-weight: 500;}
+        .nav-links a:hover, .nav-links a.active { color: var(--text-white); }
+        .auth-buttons { display: flex; align-items: center; gap: 15px; }
+
+        .btn-login { background: var(--btn-color); color: white; padding: 0.6rem 1.5rem; border-radius: 50px; text-decoration: none; font-weight: 600; border: 2px solid var(--btn-color); transition: 0.3s; cursor: pointer; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4); }
+        .btn-signup { background: transparent; color: var(--text-white); padding: 0.6rem 1.5rem; border-radius: 50px; text-decoration: none; font-weight: 600; border: 2px solid var(--btn-color); transition: 0.3s; cursor: pointer; }
+        .btn-signup:hover { background: var(--btn-color); color: white; transform: translateY(-2px); }
+
+        .hero { display: flex; align-items: center; justify-content: space-between; padding: 0 5%; flex-grow: 1; animation: fadeIn 0.5s ease; }
+        .hero-content h1 { font-family: 'Anton', sans-serif; font-size: 7.5rem; line-height: 0.9; text-transform: uppercase; margin-bottom: 1.5rem; background: linear-gradient(#ffffff, #b8b8b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .sub-text { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; font-size: 1.1rem; color: var(--text-gray); }
+        .sub-text span { color: var(--accent-magenta); font-size: 1.5rem; }
+
+        .countdown-container { display: flex; gap: 15px; margin-bottom: 2.5rem; }
+        .countdown-item { background: var(--card-bg); border: 1px solid rgba(217, 70, 239, 0.4); border-radius: 12px; padding: 10px 15px; text-align: center; min-width: 80px; backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .countdown-value { font-size: 2rem; font-weight: 700; color: var(--text-white); font-family: 'Anton', sans-serif; letter-spacing: 2px; display: block; margin-bottom: 2px; }
+        .countdown-item label { font-size: 0.75rem; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+
+        .btn-vote { background: linear-gradient(90deg, #9d50bb, #d946ef); padding: 1rem 2.5rem; border-radius: 50px; color: white; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; transition: filter 0.3s, transform 0.2s; box-shadow: 0 5px 20px rgba(217, 70, 239, 0.3); cursor: pointer; border: none; }
+        .btn-vote:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        .hero-image { width: 45%; height: 600px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .blob-bg { position: absolute; width: 500px; height: 500px; background: linear-gradient(180deg, #6a11cb 0%, #2575fc 100%); border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; filter: blur(40px); z-index: 1; opacity: 0.8; }
+        .illustration { width: 100%; max-width: 550px; border-radius: 20px; z-index: 2; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: perspective(1000px) rotateY(-5deg); transition: transform 0.3s; }
+        .illustration:hover { transform: perspective(1000px) rotateY(0deg); }
+
+        .section-header { text-align: center; margin-bottom: 2rem; }
+        .section-header h2 { font-size: 3rem; background: linear-gradient(90deg, #fff, #b8b8b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .filter-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 3rem; }
+        .filter-btn { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-gray); padding: 8px 20px; border-radius: 30px; cursor: pointer; transition: all 0.3s ease; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 500; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent-magenta); color: white; border-color: var(--accent-magenta); box-shadow: 0 0 15px rgba(217, 70, 239, 0.4); }
+
+        #candidates-section, #results-section, #live-section { display: none; padding: 2rem 5%; flex-grow: 1; animation: fadeIn 0.5s ease; }
+        
+        .voting-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; align-items: stretch; }
+        .candidate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s ease, border-color 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; }
+        .candidate-card:hover { transform: translateY(-5px); border-color: var(--accent-magenta); }
+        .candidate-img { width: 160px; height: 210px; object-fit: cover; border-radius: 12px; border: 2px solid var(--accent-magenta); margin: 0 auto 20px auto; display: block; transition: transform 0.3s ease; }
+        .candidate-card:hover .candidate-img { transform: scale(1.03); }
+        .candidate-name { font-size: 1.2rem; font-weight: 600; color: var(--text-white); margin-bottom: 5px; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; }
+        .candidate-faculty { font-size: 0.75rem; color: #74b9ff; background: rgba(116, 185, 255, 0.1); padding: 6px 12px; border-radius: 12px; display: inline-block; margin: 0 auto 15px auto; line-height: 1.4; max-width: 90%; }
+        .candidate-manifesto { background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 12px; font-size: 0.9rem; color: var(--text-gray); font-style: italic; margin-top: auto; border-left: 3px solid var(--primary-purple); display: flex; align-items: center; justify-content: center; width: 100%; }
+
+        .results-container { max-width: 900px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .leaderboard-list { display: flex; flex-direction: column; gap: 15px; }
+        .result-row { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); padding: 15px 20px; border-radius: 15px; transition: all 0.3s ease; cursor: pointer; }
+        .result-row:hover { transform: translateX(5px) scale(1.01); border-color: var(--accent-magenta); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.2); }
+        .rank { font-size: 1.5rem; font-weight: 700; width: 40px; color: var(--text-gray); text-align: center; }
+        .rank-1 { color: #ffd700; font-size: 2.2rem; } .rank-2 { color: #c0c0c0; font-size: 1.8rem; } .rank-3 { color: #cd7f32; font-size: 1.6rem; }
+        
+        .res-avatar { width: 45px; height: 55px; border-radius: 6px; object-fit: cover; margin: 0 20px 0 10px; border: 2px solid transparent; }
+        .rank-1-img { border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.4); }
+        
+        .result-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; }
+        .result-header { display: flex; justify-content: space-between; align-items: center; }
+        .result-name { font-weight: 600; font-size: 1.1rem; color: var(--text-white); display: flex; align-items: center; gap: 8px;}
+        .click-hint { font-size: 0.75rem; color: var(--accent-magenta); background: rgba(217, 70, 239, 0.15); padding: 2px 8px; border-radius: 10px; opacity: 0; transition: opacity 0.3s;}
+        .result-row:hover .click-hint { opacity: 1; }
+        .result-stats { font-weight: 700; color: var(--text-gray); font-size: 0.95rem;}
+        .progress-bg { width: 100%; height: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #9d50bb, #d946ef); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 200; overflow-y: auto;}
+        .modal-card { background: var(--modal-bg); color: var(--text-white); width: 90%; max-width: 450px; border-radius: 20px; padding: 2.5rem; position: relative; text-align: center; border: 1px solid var(--accent-magenta); box-shadow: 0 20px 60px rgba(217, 70, 239, 0.3); animation: fadeIn 0.3s ease; margin: 2rem auto; }
+        .profile-container-card { max-width: 460px !important; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; cursor: pointer; color: var(--text-gray); transition: 0.3s;}
+        .close-modal:hover { color: var(--accent-magenta); transform: rotate(90deg);}
+        
+        .modal-profile-img { width: 140px; height: 185px; border-radius: 12px; object-fit: cover; border: 4px solid var(--accent-magenta); margin: 0 auto 10px auto; }
+        .modal-rank-badge { display: table; margin: 0 auto 15px auto; background: rgba(128,128,128,0.1); border: 1px solid var(--card-border); padding: 4px 15px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; color: #ffd700; text-align: center; }
+
+        .input-group { margin-bottom: 1.2rem; text-align: left;}
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-gray); font-weight: 500;}
+        .input-wrapper, .password-wrapper { position: relative; width: 100%; }
+        .input-group input, .input-group select { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-white); font-family: 'Poppins', sans-serif; outline: none; transition: 0.3s; font-size: 0.95rem; }
+        .input-group input:focus { border-color: var(--accent-magenta); }
+        .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-gray); font-size: 1.3rem; pointer-events: none; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-gray); font-size: 1.3rem; transition: 0.3s; }
+
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta)); border: none; border-radius: 8px; color: #ffffff; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; }
+        .btn-submit:disabled { background: rgba(128, 128, 128, 0.2); color: #ccc; cursor: not-allowed; box-shadow: none; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); }
+        .form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-gray); }
+        .form-footer a { color: var(--accent-magenta); text-decoration: none; font-weight: 600; cursor: pointer;}
+        
+        #lockout-msg, #error-msg { display: none; background: rgba(255, 118, 117, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; margin-bottom: 1rem; font-weight: 600; }
+
+        .live-stat-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--card-border); flex: 1; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .live-stat-card h3 { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; }
+        .live-stat-card p { color: var(--text-gray); font-size: 0.85rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
+
+        @media (max-width: 900px) {
+            .hero { flex-direction: column; text-align: center; margin-top: 4rem; }
+            .hero-content h1 { font-size: 4rem; }
+            .countdown-container { justify-content: center; }
+            .nav-links { display: none; }
+            .hero-image { width: 100%; margin-top: 4rem; height: 400px; }
+            .auth-buttons { gap: 10px; }
+            .btn-signup, .btn-login { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            .live-stats-wrapper { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" class="logo" onclick="showHome()">UTHM E-Voting</a>
+        <ul class="nav-links">
+            <li><a id="nav-home" class="active" onclick="showHome()">Home</a></li>
+            <li><a id="nav-candidates" onclick="showCandidates()">Candidates</a></li>
+            <li><a id="nav-live" onclick="showLive()">Live</a></li>
+            <li><a id="nav-results" onclick="showResults()">Results</a></li>
+        </ul>
+        <div class="auth-buttons">
+            <a href="/signup" class="btn-signup">Sign Up</a>
+            <a onclick="openLoginModal()" class="btn-login">Login</a>
+        </div>
+    </nav>
+
+    <section class="hero" id="home-section">
+        <div class="hero-content">
+            <h1 id="hero-title">YOUR VOTE<br>YOUR VOICE</h1>
+            <div class="sub-text">
+                <span>✻</span>
+                <p id="hero-subtitle">The future depends on it.<br>Secure. Transparent. Blockchain-Verified.</p>
+            </div>
+            
+            <div class="countdown-container" id="election-countdown">
+                <div class="countdown-item"><span class="countdown-value" id="cd-days">00</span><span class="countdown-label">Days</span></div>
+                <div class="countdown-item"><span class="countdown-value" id="cd-hours">00</span><span class="countdown-label">Hours</span></div>
+                <div class="countdown-item"><span class="countdown-value" id="cd-minutes">00</span><span class="countdown-label">Mins</span></div>
+                <div class="countdown-item"><span class="countdown-value" id="cd-seconds">00</span><span class="countdown-label">Secs</span></div>
+            </div>
+
+            <button onclick="openLoginModal()" class="btn-vote"><span>Vote Now</span> <span>&rarr;</span></button>
+        </div>
+        <div class="hero-image">
+            <div class="blob-bg"></div>
+            <img src="https://i.pinimg.com/1200x/a0/0d/1e/a00d1e8c0df2f31ed7e4be517d821db9.jpg" alt="Students Voting" class="illustration">
+        </div>
+    </section>
+
+    <section id="candidates-section">
+        <div class="section-header">
+            <h2>Official Candidates 2026</h2>
+            <p style="color: var(--text-gray);">Get to know your future leaders.</p>
+        </div>
+
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterFaculty('all', this)">All</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Computer Science and Information Technology', this)">FSKTM</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Electrical and Electronic Engineering', this)">FKEE</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Mechanical Engineering', this)">FKMP</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Technology Management and Business', this)">FPTP</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Applied Sciences and Technology', this)">FAST</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Civil Engineering', this)">FKAAB</button>
+            <button class="filter-btn" onclick="filterFaculty('Faculty of Technical and Vocational Education', this)">FPTV</button>
+        </div>
+        
+        <div class="voting-grid">
+            {% for c in candidates %}
+            <div class="candidate-card" data-faculty="{{ c.faculty }}">
+                <img src="{{ c.avatar_path }}" alt="{{ c.name }}" class="candidate-img" onerror="this.src='https://ui-avatars.com/api/?name={{ c.name }}&background=d946ef&color=fff&size=300'">
+                <h3 class="candidate-name">{{ c.name }}</h3>
+                <div class="candidate-faculty">{{ c.faculty }}</div>
+                <div class="candidate-manifesto">"{{ c.manifesto }}"</div>
+            </div>
+            {% else %}
+            <p style="text-align: center; color: var(--text-gray); width: 100%; grid-column: 1 / -1;">No active candidates currently listed for the election.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section id="live-section">
+        <div class="section-header">
+            <h2>Live Election Progress</h2>
+            <p style="color: var(--text-gray);">Real-time faculty voter turnout tracking.</p>
+        </div>
+        
+        <div class="results-container" style="max-width: 1000px;">
+            <div class="live-stats-wrapper" style="display:flex; justify-content:space-between; margin-bottom:40px; gap:20px;">
+                <div class="live-stat-card"><h3 style="color:var(--text-white);" id="live-total-reg">0</h3><p>Total Registered</p></div>
+                <div class="live-stat-card"><h3 style="color:var(--success);" id="live-total-voted">0</h3><p>Total Voted</p></div>
+                <div class="live-stat-card" style="border-left:4px solid var(--accent-magenta);"><h3 style="color:var(--accent-magenta);" id="live-turnout">0%</h3><p>Overall Turnout</p></div>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 25px; color: var(--text-white); font-weight: 600; font-size: 1.2rem;">Turnout by Faculty</h3>
+                <div id="live-faculty-container"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 0.85rem; color: var(--text-gray);">
+                <p><i class='bx bx-check-shield' style="color: var(--success); font-size: 1.1rem; vertical-align: middle;"></i> Live data securely synced from the database node.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="results-section">
+        <div class="section-header">
+            <h2>Live Election Results</h2>
+            <p style="color: var(--text-gray);">Click on any candidate to view their profile details.</p>
+        </div>
+        
+        <div class="results-container">
+            <div class="leaderboard-list" id="results-list-container"></div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="color: var(--text-gray); font-size: 0.9rem;"><i class='bx bx-time-five'></i> Last updated: Just now | Total Votes: <span id="total-votes-cast">0</span></p>
+                <button onclick="openLoginModal()" class="btn-signup" style="display: inline-block; margin-top: 15px;">Login to View Full Audit</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="profile-modal" class="modal-overlay" onclick="closeOutside(event, 'profile-modal')">
+        <div class="modal-card profile-container-card">
+            <span class="close-modal" onclick="closeModal('profile-modal')">&times;</span>
+            <img src="" id="modal-img" class="modal-profile-img" alt="Profile Picture">
+            <div class="modal-rank-badge" id="modal-rank">Rank</div>
+            <h3 id="modal-name" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 5px;">Name</h3>
+            <div id="modal-faculty" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); padding: 5px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; margin-bottom: 20px;">Faculty</div>
+            
+            <div style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 12px; border-left: 3px solid var(--primary-purple); margin-bottom: 20px; text-align: center;">
+                <p id="modal-manifesto" style="font-style: italic; font-size: 0.95rem; text-align: center;">"Manifesto goes here"</p>
+            </div>
+            
+            <div style="background: rgba(217, 70, 239, 0.1); border: 1px solid rgba(217, 70, 239, 0.3); padding: 15px; border-radius: 12px;">
+                <span style="display: block; font-size: 0.8rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Current Standing</span>
+                <span id="modal-stats" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-magenta);">0% (0 Votes)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATED LOGIN MODAL WITH LOCKOUT LOGIC -->
+    <div id="login-modal" class="modal-overlay" onclick="closeOutside(event, 'login-modal')">
+        <div class="modal-card" style="text-align: left; max-width: 420px; padding: 2.5rem;">
+            <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 700;">Login</h2>
+                <p style="color: var(--text-gray); font-size: 0.9rem;">Access the E-Voting Portal</p>
+            </div>
+            
+            <!-- Error & Lockout Messages -->
+            <div id="error-msg">Incorrect Email or Password. <br> Attempts remaining: <span id="attempts-left">3</span></div>
+            <div id="lockout-msg">System Locked. <br> Try again in <span id="timer">300</span> seconds.</div>
+
+            <form action="/login" method="POST" id="login-form">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <i class='bx bx-envelope input-icon'></i>
+                        <input type="email" name="username" placeholder="student@uthm.edu.my" required autocomplete="off">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <i class='bx bx-lock-alt input-icon'></i>
+                        <input type="password" id="modal-login-pass" name="password" placeholder="Enter password" required>
+                        <i class='bx bx-show toggle-password' onclick="toggleView('modal-login-pass', this)"></i>
+                    </div>
+                </div>
+
+                <div class="form-footer" style="text-align: center; margin-top: -5px; margin-bottom: 15px;">
+                    <a href="/forgot-password" style="color: var(--accent-magenta); font-size: 0.85rem; text-decoration: none; font-weight: 500; display: block;">Forgot Password?</a>
+                </div>
+
+                <!-- Capture flash messages from Flask safely -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <script>
+                            window.addEventListener('DOMContentLoaded', () => {
+                                {% for category, message in messages %}
+                                    {% if message == 'Invalid email or password.' %}
+                                        // ONLY trigger the penalty if it is an actual login error
+                                        openLoginModal();
+                                        handleFailedAttempt();
+                                    {% else %}
+                                        // Show a clean browser notification for everything else (like logging out)
+                                        alert("{{ message }}");
+                                    {% endif %}
+                                {% endfor %}
+                            });
+                        </script>
+                    {% endif %}
+                {% endwith %}
+
+                <button type="submit" class="btn-submit" id="btn-login-submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 5 MINUTE LOCKOUT LOGIC ---
+        const MAX_ATTEMPTS = 3;
+        const LOCKOUT_DURATION = 300; // 5 minutes in seconds
+        
+        function handleFailedAttempt() {
+            let attempts = parseInt(localStorage.getItem('loginAttempts')) || 0;
+            attempts++;
+            localStorage.setItem('loginAttempts', attempts);
+            
+            const errorMsg = document.getElementById('error-msg');
+            const attemptsLeftSpan = document.getElementById('attempts-left');
+            
+            if (attempts >= MAX_ATTEMPTS) {
+                const lockTime = new Date().getTime() + (LOCKOUT_DURATION * 1000);
+                localStorage.setItem('lockedUntil', lockTime);
+                errorMsg.style.display = 'none';
+                startLockout(LOCKOUT_DURATION);
+            } else {
+                errorMsg.style.display = 'block';
+                attemptsLeftSpan.innerText = (MAX_ATTEMPTS - attempts);
+            }
+        }
+
+        function checkLockoutStatus() {
+            const lockedUntil = localStorage.getItem('lockedUntil');
+            if (lockedUntil) {
+                const now = new Date().getTime();
+                if (now < lockedUntil) {
+                    const remainingSeconds = Math.ceil((lockedUntil - now) / 1000);
+                    startLockout(remainingSeconds);
+                    return true;
+                } else {
+                    localStorage.removeItem('lockedUntil');
+                    localStorage.setItem('loginAttempts', 0);
+                }
+            }
+            return false;
+        }
+
+        function startLockout(seconds) {
+            const msg = document.getElementById('lockout-msg');
+            const timerSpan = document.getElementById('timer');
+            const btnLogin = document.getElementById('btn-login-submit');
+            const inputs = document.querySelectorAll('#login-form input');
+
+            msg.style.display = 'block';
+            btnLogin.disabled = true;
+            btnLogin.innerText = "Locked";
+            inputs.forEach(input => input.disabled = true);
+
+            let remaining = seconds;
+            timerSpan.innerText = remaining;
+            
+            const interval = setInterval(() => {
+                remaining--;
+                timerSpan.innerText = remaining;
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    msg.style.display = 'none';
+                    btnLogin.disabled = false;
+                    btnLogin.innerText = "Login";
+                    inputs.forEach(input => input.disabled = false);
+                    localStorage.removeItem('lockedUntil');
+                    localStorage.setItem('loginAttempts', 0);
+                }
+            }, 1000);
+        }
+
+        function openLoginModal() { 
+            document.getElementById('login-modal').style.display = 'flex'; 
+            checkLockoutStatus();
+        }
+
+        // --- DASHBOARD LOGIC ---
+        setInterval(function() {
+            fetch('/api/get-system-settings').then(res => res.json()).then(settings => {
+                const now = new Date().getTime();
+                let distance = 0;
+
+                if (settings.public_election_status === 'Paused') {
+                    document.getElementById("hero-subtitle").innerHTML = "<span style='color:var(--danger); font-weight:bold;'><i class='bx bx-error'></i> Election Paused</span><br>Voting is temporarily suspended by the Administrator.";
+                    distance = 0;
+                } else if (settings.public_election_status === 'Live' && settings.public_start_time) {
+                    const startTs = new Date(settings.public_start_time).getTime();
+                    const endTs = new Date(settings.public_end_time).getTime();
+                    const twoHoursAfterEnd = endTs + (2 * 60 * 60 * 1000);
+
+                    if (now < startTs) {
+                        document.getElementById("hero-subtitle").innerHTML = "Election Starts Soon.<br>Secure. Transparent. Blockchain-Verified.";
+                        distance = startTs - now;
+                    } else if (now >= startTs && now <= endTs) {
+                        document.getElementById("hero-subtitle").innerHTML = "<span style='color:var(--success); font-weight:bold;'>Election is LIVE</span><br>Secure your vote now.";
+                        distance = endTs - now;
+                    } else if (now > endTs && now <= twoHoursAfterEnd) {
+                        document.getElementById("hero-subtitle").innerHTML = "<span style='color:var(--danger); font-weight:bold;'>Election has Ended</span><br>Thank you for voting.";
+                        distance = 0;
+                    } else {
+                        document.getElementById("hero-subtitle").innerHTML = "The future depends on it.<br>Secure. Transparent. Blockchain-Verified.";
+                        distance = 0;
+                    }
+                } else {
+                    document.getElementById("hero-subtitle").innerHTML = "The future depends on it.<br>Secure. Transparent. Blockchain-Verified.";
+                    distance = 0;
+                }
+
+                if (distance > 0) {
+                    document.getElementById("cd-days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                    document.getElementById("cd-hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                    document.getElementById("cd-minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                    document.getElementById("cd-seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                } else {
+                    document.getElementById("cd-days").innerText = "00";
+                    document.getElementById("cd-hours").innerText = "00";
+                    document.getElementById("cd-minutes").innerText = "00";
+                    document.getElementById("cd-seconds").innerText = "00";
+                }
+            });
+        }, 1000); 
+
+        function showHome() {
+            document.getElementById('home-section').style.display = 'flex';
+            document.getElementById('candidates-section').style.display = 'none';
+            document.getElementById('live-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'none';
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            document.getElementById('nav-home').classList.add('active');
+        }
+
+        function showCandidates() {
+            document.getElementById('home-section').style.display = 'none';
+            document.getElementById('candidates-section').style.display = 'block';
+            document.getElementById('live-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'none';
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            document.getElementById('nav-candidates').classList.add('active');
+        }
+
+        function showLive() {
+            document.getElementById('home-section').style.display = 'none';
+            document.getElementById('candidates-section').style.display = 'none';
+            document.getElementById('live-section').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            document.getElementById('nav-live').classList.add('active');
+        }
+
+        function showResults() {
+            document.getElementById('home-section').style.display = 'none';
+            document.getElementById('candidates-section').style.display = 'none';
+            document.getElementById('live-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'block';
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            document.getElementById('nav-results').classList.add('active');
+        }
+
+        function filterFaculty(facultyCode, btnElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            document.querySelectorAll('.candidate-card').forEach(card => {
+                card.style.display = (facultyCode === 'all' || card.getAttribute('data-faculty') === facultyCode) ? 'flex' : 'none';
+            });
+        }
+
+        function openProfile(name, imgSrc, faculty, manifesto, stats, rankText, rankColor) {
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-img').src = imgSrc;
+            document.getElementById('modal-faculty').innerText = faculty;
+            document.getElementById('modal-manifesto').innerText = `"${manifesto}"`;
+            document.getElementById('modal-stats').innerText = stats;
+            const badge = document.getElementById('modal-rank');
+            badge.innerText = rankText; badge.style.color = rankColor;
+            badge.style.borderColor = rankColor !== 'var(--text-gray)' ? rankColor : 'var(--card-border)';
+            document.getElementById('modal-img').style.borderColor = rankColor !== 'var(--text-gray)' ? rankColor : 'var(--accent-magenta)';
+            document.getElementById('profile-modal').style.display = 'flex';
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function closeOutside(event, modalId) { if (event.target === document.getElementById(modalId)) closeModal(modalId); }
+
+        function toggleView(fieldId, icon) { const input = document.getElementById(fieldId); if (input.type === "password") { input.type = "text"; icon.classList.replace('bx-show', 'bx-hide'); } else { input.type = "password"; icon.classList.replace('bx-hide', 'bx-show'); } }
+
+        function fetchDashboardStats() {
+            fetch('/api/dashboard-stats?t=' + new Date().getTime()).then(r=>r.json()).then(data => {
+                document.getElementById('live-total-reg').innerText = data.total_registered.toLocaleString();
+                document.getElementById('live-total-voted').innerText = data.total_voted.toLocaleString();
+                document.getElementById('live-turnout').innerText = data.turnout_pct + "%";
+                document.getElementById('total-votes-cast').innerText = data.total_voted.toLocaleString();
+                
+                const facContainer = document.getElementById('live-faculty-container');
+                facContainer.innerHTML = "";
+                data.faculty_stats.forEach((f, idx) => {
+                    let label = f.faculty;
+                    let highlight = "color: var(--text-white); font-weight: 600;";
+                    let bgClass = `style="width: ${f.turnout_pct}%;"`;
+                    
+                    if (idx === 0 && f.turnout_pct > 0) {
+                        label = `<i class='bx bxs-trophy'></i> ${f.faculty} (Highest Turnout)`;
+                        highlight = "color: #ffd700; font-weight: 600;";
+                        bgClass = `style="width: ${f.turnout_pct}%; background: linear-gradient(90deg, #ffd700, #ffb142);"`;
+                    } else if (idx === data.faculty_stats.length - 1 && data.faculty_stats.length > 1) {
+                        label = `${f.faculty} (Lowest Turnout)`;
+                        highlight = "color: var(--danger); font-weight: 600;";
+                        bgClass = `style="width: ${f.turnout_pct}%; background: var(--danger);"`;
+                    }
+                    
+                    facContainer.innerHTML += `
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem;">
+                                <span style="${highlight}">${label}</span><span style="${highlight}">${f.turnout_pct}%</span>
+                            </div>
+                            <div class="progress-bg" style="height: 12px;"><div class="progress-fill" ${bgClass}></div></div>
+                        </div>`;
+                });
+                
+                const resContainer = document.getElementById('results-list-container');
+                if(resContainer) {
+                    resContainer.innerHTML = "";
+                    data.candidate_stats.forEach((c, idx) => {
+                        let rankHtml = `<div class="rank">${idx+1}</div>`;
+                        let imgClass = "res-avatar";
+                        let color = "var(--text-gray)";
+                        
+                        if(data.election_status !== 'Pending') {
+                            if(idx === 0) { rankHtml = `<div class="rank rank-1"><i class='bx bxs-crown'></i></div>`; imgClass += " rank-1-img"; color = "#ffd700"; }
+                            else if(idx === 1) { rankHtml = `<div class="rank rank-2"><i class='bx bxs-medal'></i></div>`; color = "#c0c0c0"; }
+                            else if(idx === 2) { rankHtml = `<div class="rank rank-3"><i class='bx bxs-medal'></i></div>`; color = "#cd7f32"; }
+                        }
+                        
+                        let statsHtml = ""; let progressHtml = ""; let rankText = `Rank ${idx+1}`;
+                        
+                        if (data.election_status === 'Pending') {
+                            statsHtml = `<span class="result-stats" style="color:var(--warning);">Awaiting Session Release</span>`;
+                            rankHtml = `<div class="rank">-</div>`; rankText = "Unranked"; color = "var(--text-gray)";
+                        } else {
+                            statsHtml = `<span class="result-stats">${c.vote_pct}% (${c.vote_count.toLocaleString()} Votes)</span>`;
+                            progressHtml = `<div class="progress-bg"><div class="progress-fill" style="width: ${c.vote_pct}%;"></div></div>`;
+                        }
+                        
+                        let escManifesto = c.manifesto.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        let popStats = data.election_status === 'Pending' ? '0% (0 Votes)' : `${c.vote_pct}% (${c.vote_count} Votes)`;
+                        
+                        resContainer.innerHTML += `
+                            <div class="result-row" onclick="openProfile('${c.name.replace(/'/g, "\\'")}', '${c.avatar_path}', '${c.faculty}', '${escManifesto}', '${popStats}', '${rankText}', '${color}')">
+                                ${rankHtml}
+                                <img src="${c.avatar_path}" class="${imgClass}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=d946ef&color=fff'">
+                                <div class="result-details">
+                                    <div class="result-header"><span class="result-name">${c.name} <span class="click-hint"><i class='bx bx-pointer'></i> View</span></span>${statsHtml}</div>
+                                    ${progressHtml}
+                                </div>
+                            </div>`;
+                    });
+                }
+            });
+        }
+        
+        fetchDashboardStats();
+        setInterval(fetchDashboardStats, 5000);
+    // Auto-open login modal if arriving from a successful signup redirect
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('launchLogin') === 'true') {
+                openLoginModal();
+            }
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Verification | UTHM E-Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary-purple: #9d50bb;
+            --accent-magenta: #d946ef;
+            --text-white: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --danger: #ff7675;
+            --text-gray: #b3b3b3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: var(--text-white); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem 5%; }
+        .signup-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 3rem; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }
+        .header h2 { font-size: 1.8rem; font-weight: 700; color: #ffffff; margin-bottom: 5px; }
+        .header p { color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-bottom: 2rem; } 
+        .input-group { margin-bottom: 1.5rem; }
+        .input-group input { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; color: #ffffff; outline: none; font-size: 1.3rem; text-align: center; letter-spacing: 6px; font-weight: 600; }
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta)); border: none; border-radius: 8px; color: #ffffff; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.3s; margin-top: 15px; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); }
+        .form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-gray); }
+    </style>
+</head>
+<body>
+    <div class="signup-card">
+        <div class="header">
+            <div style="font-size: 3.5rem; color: var(--accent-magenta); margin-bottom: 10px;"><i class='bx bx-lock-open-alt'></i></div>
+            <h2>Identity Verification</h2>
+            <p>Please type your 6-digit Multi-Factor authentication token code to access your protected e-voting workspace node.</p>
+        </div>
+        
+        <form action="/verify-login-mfa" method="POST">
+            <div class="input-group">
+                <input type="text" name="otp_code" placeholder="------" maxlength="6" autocomplete="off" required>
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <p style="color: var(--danger); font-size: 0.85rem; margin-top: 12px; font-weight: 500;">{{ messages[0] }}</p>
+                  {% endif %}
+                {% endwith %}
+            </div>
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+            
+        <div class="form-footer" style="margin-top: 2rem;">
+            Didn't receive the code? <br>
+            <a id="btn-resend" onclick="triggerResendCode()" style="color: var(--accent-magenta); cursor: pointer; text-decoration: underline;">Resend Code (<span id="timer-countdown">60</span>s)</a>
+        </div>
+    </div>
+
+    <script>
+        let resendTimerInterval = null;
+
+        function startResendTimer(duration) {
+            const btnResend = document.getElementById('btn-resend');
+            const timerCountdown = document.getElementById('timer-countdown');
+            clearInterval(resendTimerInterval);
+            let timeLeft = duration;
+            btnResend.style.pointerEvents = 'none';
+            btnResend.style.opacity = '0.5';
+            timerCountdown.innerText = timeLeft;
+
+            resendTimerInterval = setInterval(() => {
+                timeLeft--;
+                timerCountdown.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(resendTimerInterval);
+                    btnResend.style.pointerEvents = 'auto';
+                    btnResend.style.opacity = '1';
+                    btnResend.innerHTML = "Resend Code";
+                }
+            }, 1000);
+        }
+
+        function triggerResendCode() {
+            // Here you would trigger the backend to resend email
+            alert("A new security code has been sent to your email.");
+            startResendTimer(60);
+        }
+        
+        window.onload = () => startResendTimer(60);
+    </script>
+</body>
+</html>

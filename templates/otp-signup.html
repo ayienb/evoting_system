@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email | UTHM E-Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary-purple: #9d50bb;
+            --accent-magenta: #d946ef;
+            --text-white: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --danger: #ff7675;
+            --text-gray: #b3b3b3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); color: var(--text-white); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem 5%; }
+        .signup-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 3rem; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }
+        .header h2 { font-size: 1.8rem; font-weight: 700; color: #ffffff; margin-bottom: 5px; }
+        .header p { color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-bottom: 2rem; } 
+        .input-group { margin-bottom: 1.5rem; }
+        .input-wrapper { position: relative; width: 100%; }
+        .input-group input {
+            width: 100%; padding: 14px; background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border); border-radius: 8px; color: #ffffff;
+            outline: none; font-size: 1.3rem; text-align: center; letter-spacing: 6px; font-weight: 600;
+        }
+        .input-group input:focus { border-color: var(--accent-magenta); }
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-purple), var(--accent-magenta)); border: none; border-radius: 8px; color: #ffffff; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.3s; margin-top: 15px; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); }
+        .form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-gray); }
+    </style>
+</head>
+<body>
+    <div class="signup-card">
+        <div class="header">
+            <div style="font-size: 3.5rem; color: var(--accent-magenta); margin-bottom: 10px;"><i class='bx bx-shield-quarter'></i></div>
+            <h2>Verify Code</h2>
+            <p>Please type the 6-digit OTP passcode generated in your project console log.</p>
+        </div>
+        
+        <form action="/verify-otp" method="POST">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="text" name="otp_code" placeholder="------" maxlength="6" autocomplete="off" required>
+                </div>
+                
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <p style="color: var(--danger); font-size: 0.85rem; margin-top: 12px; font-weight: 500;">{{ messages[0] }}</p>
+                  {% endif %}
+                {% endwith %}
+            </div>
+            
+            <button type="submit" class="btn-submit">Confirm & Activate Account</button>
+            
+ <div class="form-footer" style="margin-top: 20px; text-align: center; font-size: 0.9rem; color: var(--text-gray);">
+    Didn't receive the code? 
+    <span id="resend-container" style="color: var(--text-gray);">Resend Code (60s)</span>
+</div>
+
+<script>
+    let countdownTime = 60;
+    let timerInterval = null;
+
+    function startCountdown() {
+        const container = document.getElementById('resend-container');
+        countdownTime = 60;
+        
+        container.style.cursor = 'not-allowed';
+        container.style.color = 'var(--text-gray)';
+        container.style.textDecoration = 'none';
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            countdownTime--;
+            container.innerText = `Resend Code (${countdownTime}s)`;
+            
+            if (countdownTime <= 0) {
+                clearInterval(timerInterval);
+                container.innerText = "Resend Code Now";
+                container.style.cursor = 'pointer';
+                container.style.color = 'var(--accent-magenta)';
+                container.style.textDecoration = 'underline';
+                container.style.fontWeight = '600';
+                container.onclick = handleResendAction;
+            }
+        }, 1000);
+    }
+
+    function handleResendAction() {
+        const container = document.getElementById('resend-container');
+        container.onclick = null;
+        container.innerText = "Sending...";
+        
+        fetch('/submit-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: "" }) 
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("A fresh code has been sent!");
+                startCountdown();
+            } else {
+                alert("Failed to resend. Please try again.");
+                container.onclick = handleResendAction;
+                container.innerText = "Resend Code Now";
+            }
+        });
+    }
+
+    window.onload = function() {
+        startCountdown();
+    };
+    </script>
+</body>
+</html>
